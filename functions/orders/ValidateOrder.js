@@ -8,48 +8,49 @@ import { convertFromJSON } from "../helpers/Converter.js";
 
 
 export const validateorder = onRequest(async (req, res) => {
+
+    try{
+
+        //this is converted to a json object automatically within the express.js framework
+        const formJSON = req.body;
+
+        if(formJSON == null){
+            return res.status(400).json({error: true, message: "The request body cannot be null and must be a of type application/json"});
+        }
+
+        if (req.get('Content-Type') !== 'application/json') {
+            return res.status(400).json({error: true, message: "Request must be of content type application/json"});
+        }
+
+        const validationError = validateForm(formJSON);
+
+        if(validationError != null) {
+            return res.status(400).json({error: true, message: validationError});
+        }
+
+        try {
+
+            // Get a reference to the 'orders' collection.
+            const db = getFirestore("development");
+            const ordersCollection = db.collection('test');
+
+            // Add the order data to Firestore. The .add() method creates a new document with an auto-generated ID.
+            const docID = await ordersCollection.add({
+                field: 123456789,
+                // createdAt: db.FieldValue.serverTimestamp() // Add a timestamps
+            });
+
+            return res.status(200).json({error: false, docID: "docID"});
+
+        } catch (error) {
+
+            console.error('Error saving order to Firestore:', error);
+            return res.status(500).json({error: true, message: "failed to store valid order",});
+
+        }
     
-    const formJSONString = req.body;
-
-    if(formJSONString == null){
-        res.json({error: true, message: "Form parameter formjson cannot be null"});
-        return;
-    }
-
-    const formJSON = convertFromJSON(formJSONString);
-
-    if(formJSON == null){
-        res.json({error: true, message: "Parameter formjson is invalid json"});
-        return;    
-    }
-
-    const validationError = validateForm(formJSON);
-
-    if(validationError != null) {
-        res.json({error: true, message: errorMessage});
-        return;
-    }
-
-    try {
-
-        // Get a reference to the 'orders' collection.
-        const db = getFirestore("development");
-        const ordersCollection = db.collection('test');
-
-        // Add the order data to Firestore. The .add() method creates a new document with an auto-generated ID.
-        const docID = await ordersCollection.add({
-            field: 123456789,
-            // createdAt: db.FieldValue.serverTimestamp() // Add a timestamps
-        });
-
-        res.status(200).json({error: false, docID: docID});
-        return
-
-    } catch (error) {
-
-        console.error('Error saving order to Firestore:', error);
-        res.status(500).json({error: true, message: "failed to store valid order",});
-
+    }catch(error){
+        return res.status(500).json({error: true, message: "Internal Server Error", errorLog: error.toString()});
     }
 
 });
