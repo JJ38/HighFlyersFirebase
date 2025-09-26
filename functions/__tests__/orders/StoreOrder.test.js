@@ -1,8 +1,12 @@
-import { validateorder } from '../../index.js';
+process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
+
+const admin = require("firebase-admin");
+const app = admin.initializeApp({projectId: "highflyersukcouriers-a9c17"});
+const db = admin.firestore(app);
+
+const emulatorUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/storeorder';
 
 describe('validateOrder on emulator', () => {
-
-    const emulatorUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/validateorder';
 
     let validOrder = {
 
@@ -12,7 +16,7 @@ describe('validateOrder on emulator', () => {
         quantity: 2,
         boxes: 2,
         username: "customer",
-        deliveryWeek: 10,
+        deliveryWeek: 0,
 
         collectionName: "James Brass",
         collectionAddress1: "10 Kenilworth road",  
@@ -29,7 +33,7 @@ describe('validateOrder on emulator', () => {
         deliveryPhoneNumber: "07123456789",
 
         payment: "Collection",
-        price: 60,
+        price: 0,
         message: "",
         code: "",
         addedBy: "",
@@ -126,24 +130,6 @@ describe('validateOrder on emulator', () => {
 
         expect(res.status).toBe(400);
      
-    });
-
-    test('Valid Order', async () => {
-
-        const res = await fetch(emulatorUrl, {
-            method: 'POST',
-            body: JSON.stringify(validOrder),
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-        const json = await res.json();
-        console.log(json);
-
-
-        expect(res.status).toBe(200);
-        expect(json.error).toBe(false);
-
-        
     });
 
     test('Invalid Collection Phone Number', async () => {
@@ -470,19 +456,129 @@ describe('validateOrder on emulator', () => {
 
 });
 
-describe('validateOrder on emulator', () => {
 
-    test('Completely empty body', async () => {
+describe('Storing orders', () => {
+
+    let validOrder = {
+
+        ID: 123456,
+        animalType: "Pigeons - Young Birds",
+        email: "jamesbrass@ymail.com",
+        quantity: 2,
+        boxes: 2,
+        username: "customer",
+        deliveryWeek: 10,
+
+        collectionName: "James Brass",
+        collectionAddress1: "10 Kenilworth road",  
+        collectionAddress2: "",
+        collectionAddress3: "",
+        collectionPostcode: "DE5 3GY",
+        collectionPhoneNumber: "07123456789",
+
+        deliveryName: "Katherine Brass",
+        deliveryAddress1: "8 Marston Close",
+        deliveryAddress2: "",
+        deliveryAddress3: "",
+        deliveryPostcode: "",
+        deliveryPhoneNumber: "07123456789",
+
+        payment: "Collection",
+        price: 60,
+        message: "",
+        code: "",
+        addedBy: "",
+        printed: "Not Printed",
+        timestamp: "2025-08-27 20:21:38",
+
+    }
+
+    beforeEach(() => {
+
+        validOrder = {
+
+            ID: 123456,
+            animalType: "Pigeons - Young Birds",
+            email: "jamesbrass@ymail.com",
+            quantity: 2,
+            boxes: 2,
+            username: "customer",
+            deliveryWeek: 10,
+
+            collectionName: "James Brass",
+            collectionAddress1: "10 Kenilworth road",  
+            collectionAddress2: "",
+            collectionAddress3: "",
+            collectionPostcode: "DE5 3GY",
+            collectionPhoneNumber: "07123456789",
+
+            deliveryName: "Katherine Brass",
+            deliveryAddress1: "8 Marston Close",
+            deliveryAddress2: "",
+            deliveryAddress3: "",
+            deliveryPostcode: "",
+            deliveryPhoneNumber: "07123456789",
+
+            payment: "Collection",
+            price: 60,
+            message: "",
+            code: "",
+            addedBy: "",
+            printed: "Not Printed",
+            timestamp: "2025-08-27 20:21:38",
+
+        };
+
+    });
+
+    test('Valid order', async () => {
+
         const res = await fetch(emulatorUrl, {
             method: 'POST',
-            body: JSON.stringify({}),
+            body: JSON.stringify(validOrder),
             headers: { 'Content-Type': 'application/json' },
         });
 
         const json = await res.json();
-        expect(res.status).toBe(400);
-        expect(json.error).toBe(true);
-        expect(json.message).toBe("Validation Error - make sure all required fields are in the json and non values are null");
+
+        const docID = json.docID;
+
+        expect(res.status).toBe(200);
+        expect(json.error).toBe(false);
+
+        const docRef = db.collection("test").doc(docID);
+
+        const docSnap = await docRef.get();
+
+        expect(docSnap.exists).toBe(true);
+        expect(docSnap.data()).toEqual(validOrder);
+
+    });
+
+    test('Valid order', async () => {
+
+        const res = await fetch(emulatorUrl, {
+            method: 'POST',
+            body: JSON.stringify(validOrder),
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        const json = await res.json();
+
+        const docID = json.docID;
+
+        expect(res.status).toBe(200);
+        expect(json.error).toBe(false);
+
+        const docRef = db.collection("test").doc(docID);
+
+        const docSnap = await docRef.get();
+
+        expect(docSnap.exists).toBe(true);
+        
+        const storedData = docSnap.data();
+        expect(storedData.price).toBe(validOrder.deliveryPhoneNumber);
+
     });
 
 });

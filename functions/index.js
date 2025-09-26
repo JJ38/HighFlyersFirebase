@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase-admin/app";
-import { validateorder } from "./orders/ValidateOrder.js";
+import { storeorder } from "./orders/StoreOrder.js";
 
 initializeApp();
 
-export{ validateorder };
+export{ storeorder };

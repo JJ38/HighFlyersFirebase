@@ -16,8 +16,11 @@
   "main": "index.js",
   "type": "module",
   "dependencies": {
-    "firebase-admin": "^12.6.0",
-    "firebase-functions": "^6.0.1"
+    "firebase": "^12.3.0",
+    "firebase-admin": "^13.5.0",
+    "firebase-functions": "^6.0.1",
+    "firestore": "^1.1.6",
+    "luxon": "^3.7.2"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",
