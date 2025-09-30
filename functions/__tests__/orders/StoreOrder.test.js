@@ -1,5 +1,8 @@
 process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
 
+import { DateTime } from "luxon";
+import { getDeliveryWeek } from "../../helpers/OrderModel";
+
 const admin = require("firebase-admin");
 const app = admin.initializeApp({projectId: "highflyersukcouriers-a9c17"});
 const db = admin.firestore(app);
@@ -459,6 +462,9 @@ describe('validateOrder on emulator', () => {
 
 describe('Storing orders', () => {
 
+    const londonTime = DateTime.now().setZone('Europe/London');
+    const deliveryWeek = getDeliveryWeek(londonTime);
+
     let validOrder = {
 
         ID: 123456,
@@ -467,7 +473,7 @@ describe('Storing orders', () => {
         quantity: 2,
         boxes: 2,
         username: "customer",
-        deliveryWeek: 10,
+        deliveryWeek: deliveryWeek,
 
         collectionName: "James Brass",
         collectionAddress1: "10 Kenilworth road",  
@@ -503,7 +509,7 @@ describe('Storing orders', () => {
             quantity: 2,
             boxes: 2,
             username: "customer",
-            deliveryWeek: 10,
+            deliveryWeek: deliveryWeek,
 
             collectionName: "James Brass",
             collectionAddress1: "10 Kenilworth road",  
@@ -555,7 +561,7 @@ describe('Storing orders', () => {
 
     });
 
-    test('Valid order', async () => {
+    test('Valid delivery week', async () => {
 
         const res = await fetch(emulatorUrl, {
             method: 'POST',
@@ -577,7 +583,11 @@ describe('Storing orders', () => {
         expect(docSnap.exists).toBe(true);
         
         const storedData = docSnap.data();
-        expect(storedData.price).toBe(validOrder.deliveryPhoneNumber);
+
+        const londonTime = DateTime.now().setZone('Europe/London');
+        const deliveryWeek = getDeliveryWeek(londonTime);
+
+        expect(storedData.deliveryWeek).toBe(deliveryWeek);
 
     });
 

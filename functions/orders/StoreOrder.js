@@ -1,8 +1,10 @@
 import { onRequest } from "firebase-functions/v2/https"
 import { getFirestore } from "firebase-admin/firestore";
+import { DateTime } from "luxon";
 import { logger } from "firebase-functions";
 
 import { validateForm } from "../helpers/Validator.js";
+import { getDeliveryWeek } from "../helpers/OrderModel.js";
 
 
 
@@ -29,8 +31,10 @@ export const storeorder = onRequest(async (req, res) => {
 
         //get delivery week
 
-        // const deliveryWeek = getDeliveryWeek();
+        const londonTime = DateTime.now().setZone('Europe/London');
+        const deliveryWeek = getDeliveryWeek(londonTime);
 
+        formJSON['deliveryWeek'] = deliveryWeek;
 
         //get price
 

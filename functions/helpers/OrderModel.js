@@ -1,26 +1,25 @@
 
-const { DateTime } = require('luxon');
+//https://en.wikipedia.org/wiki/ISO_8601
+//As a consequence, if 1 January is on a Monday, Tuesday, Wednesday or Thursday, it is in week 01. 
+//If 1 January is on a Friday, Saturday or Sunday, it is in week 52 or 53 of the previous year (there is no week 00). 28 December is always in the last week of its year.
 
-export function getDeliveryWeek(currentData){
+//Years where Jan 1 falls on a Thursday or Dec 31 falls on a Thursday (in a leap year: Wednesday or Thursday) will have a week 53.
 
-    return 0;
 
-    const londonTime = DateTime.now().setZone('Europe/London');
+export function getDeliveryWeek(currentDate){
 
-    const orderTypeIsPublic = order_type === "PUBLIC";
-      
     // Customer order
     // After 12pm on Monday
-    if (currentDate.weekday === 1 && currentDate.hour >= 12) {
+    let deliveryWeek = 0;
 
-        // Delivery next Tuesday
-        deliveryDate = deliveryDate.endOf('week').plus({ days: 1 });
+    //is it monday and before 12
+    if (currentDate.weekday === 1 && currentDate.hour < 12) {
+        deliveryWeek = currentDate.weekNumber;
 
     } else{
-        deliveryDate = deliveryDate.endOf('week').plus({ days: 1 });
+
+        deliveryWeek = currentDate.plus({ weeks: 1}).weekNumber;
     }
-  
-    const deliveryWeek = deliveryDate.weekNumber;
 
     return deliveryWeek;
 
