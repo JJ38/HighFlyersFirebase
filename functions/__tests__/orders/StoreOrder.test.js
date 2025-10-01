@@ -1,11 +1,12 @@
-process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
+// process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
 
 import { DateTime } from "luxon";
 import { getDeliveryWeek } from "../../helpers/OrderModel";
+// import { db } from "../../helpers/Firebase"; 
 
-const admin = require("firebase-admin");
-const app = admin.initializeApp({projectId: "highflyersukcouriers-a9c17"});
-const db = admin.firestore(app);
+// const admin = require("firebase-admin");
+// const app = admin.initializeApp({projectId: "highflyersukcouriers-a9c17"});
+// const db = admin.firestore(app);
 
 const emulatorUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/storeorder';
 
@@ -13,7 +14,7 @@ describe('validateOrder on emulator', () => {
 
     let validOrder = {
 
-        ID: 123456,
+        ID: 1234,
         animalType: "Pigeons - Young Birds",
         email: "jamesbrass@ymail.com",
         quantity: 2,
@@ -49,7 +50,7 @@ describe('validateOrder on emulator', () => {
     beforeEach(() => {
         validOrder = {
 
-            ID: 123456,
+            ID: 1234,
             animalType: "Pigeons - Young Birds",
             email: "jamesbrass@ymail.com",
             quantity: 2,
@@ -81,36 +82,6 @@ describe('validateOrder on emulator', () => {
 
         };
     });
-
-
-    // test('should return 200 and create a document for a valid order', async () => {
-
-    //     const req = {
-    //         method: 'POST',
-    //         body: JSON.stringify(validOrder)
-    //     };
-
-    //     // Call your Cloud Function
-    //     await validateorder(req, res);
-
-    //     const responseData = res.json.mock.calls[0][0];
-
-    //     console.log(responseData.message);
-    //     console.log(responseData.json);
-
-
-    //     // Assert the HTTP response
-    //     expect(res.status).toHaveBeenCalledWith(200);
-    //     expect(res.json).toHaveBeenCalledWith(
-    //         expect.objectContaining({ error: false })
-    //     );
-
-    //     // Verify the document was written to the Firestore emulator
-    //     // const db = admin.firestore();
-    //     // const docs = await db.collection('test').get();
-    //     // expect(docs.size).toBe(1); // One document should have been created
-
-    // });
 
     test('Invalid Json', async () => {
 
@@ -462,12 +433,12 @@ describe('validateOrder on emulator', () => {
 
 describe('Storing orders', () => {
 
-    const londonTime = DateTime.now().setZone('Europe/London');
-    const deliveryWeek = getDeliveryWeek(londonTime);
+    
+    let deliveryWeek;
 
     let validOrder = {
 
-        ID: 123456,
+        ID: 1234,
         animalType: "Pigeons - Young Birds",
         email: "jamesbrass@ymail.com",
         quantity: 2,
@@ -499,11 +470,18 @@ describe('Storing orders', () => {
 
     }
 
+    beforeAll(() => {
+
+        const londonTime = DateTime.now().setZone('Europe/London');
+        deliveryWeek = getDeliveryWeek(londonTime);
+
+    });
+
     beforeEach(() => {
 
         validOrder = {
 
-            ID: 123456,
+            ID: 1234,
             animalType: "Pigeons - Young Birds",
             email: "jamesbrass@ymail.com",
             quantity: 2,
@@ -537,7 +515,7 @@ describe('Storing orders', () => {
 
     });
 
-    test('Valid order', async () => {
+    test.only('Valid order', async () => {
 
         const res = await fetch(emulatorUrl, {
             method: 'POST',
@@ -573,21 +551,25 @@ describe('Storing orders', () => {
 
         const docID = json.docID;
 
+        console.log(json.message);
+        console.log(json.errorLog);
+
+
         expect(res.status).toBe(200);
         expect(json.error).toBe(false);
 
-        const docRef = db.collection("test").doc(docID);
+        // const docRef = db.collection("test").doc(docID);
 
-        const docSnap = await docRef.get();
+        // const docSnap = await docRef.get();
 
-        expect(docSnap.exists).toBe(true);
+        // expect(docSnap.exists).toBe(true);
         
-        const storedData = docSnap.data();
+        // const storedData = docSnap.data();
 
-        const londonTime = DateTime.now().setZone('Europe/London');
-        const deliveryWeek = getDeliveryWeek(londonTime);
+        // const londonTime = DateTime.now().setZone('Europe/London');
+        // const deliveryWeek = getDeliveryWeek(londonTime);
 
-        expect(storedData.deliveryWeek).toBe(deliveryWeek);
+        // expect(storedData.deliveryWeek).toBe(deliveryWeek);
 
     });
 

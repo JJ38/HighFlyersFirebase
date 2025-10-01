@@ -1,14 +1,17 @@
 import { onRequest } from "firebase-functions/v2/https"
-import { getFirestore } from "firebase-admin/firestore";
 import { DateTime } from "luxon";
 import { logger } from "firebase-functions";
 
 import { validateForm } from "../helpers/Validator.js";
-import { getDeliveryWeek } from "../helpers/OrderModel.js";
+import { getDeliveryWeek, fetchBirdSpecies } from "../helpers/OrderModel.js";
+
+import { db } from "../helpers/Firebase.js";
 
 
 
 export const storeorder = onRequest(async (req, res) => {
+
+    let birdSpeciesSet = new Set();
 
     try{
 
@@ -17,17 +20,31 @@ export const storeorder = onRequest(async (req, res) => {
 
         if(formJSON == null){
             return res.status(400).json({error: true, message: "The request body cannot be null and must be a of type application/json"});
-        }
+        } 
 
         if (req.get('Content-Type') !== 'application/json') {
             return res.status(400).json({error: true, message: "Request must be of content type application/json"});
         }
 
-        const validationError = validateForm(formJSON);
+        const birdSpecies = await fetchBirdSpecies(db);
+
+        if(birdSpecies == false){
+            return res.status(500).json({error: true, message: "Internal Server Error", errorLog: "bird species is false"});
+        }
+
+        for(let i = 0; i < birdSpecies.species.length; i++){
+
+            birdSpeciesSet.add(birdSpecies.species[i].name);
+
+        }   
+
+        const validationError = validateForm(formJSON, Array.from(birdSpeciesSet));
+
 
         if(validationError != null) {
             return res.status(400).json({error: true, message: validationError});
         }
+
 
         //get delivery week
 
@@ -36,12 +53,9 @@ export const storeorder = onRequest(async (req, res) => {
 
         formJSON['deliveryWeek'] = deliveryWeek;
 
-        //get price
-
 
         try {
 
-            const db = getFirestore();
             const ordersCollection = db.collection('test');
 
             const docRef = await ordersCollection.add(formJSON);
@@ -51,12 +65,13 @@ export const storeorder = onRequest(async (req, res) => {
         } catch (error) {
 
             console.error('Error saving order to Firestore:', error);
-            return res.status(500).json({error: true, message: "failed to store valid order",});
+            return res.status(502).json({error: true, message: "failed to store valid order",});
 
         }
     
     }catch(error){
-        return res.status(500).json({error: true, message: "Internal Server Error", errorLog: error.toString()});
+        console.log(error);
+        return res.status(503).json({error: true, message: "Internal Server Error", errorLog: error.toString()});
     }
 
 });

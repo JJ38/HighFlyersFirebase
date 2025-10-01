@@ -1,5 +1,7 @@
+import { db } from "../../helpers/Firebase.js";
+
 import { DateTime } from "luxon";
-import { getDeliveryWeek } from "../../helpers/OrderModel";
+import { getDeliveryWeek, fetchBirdSpecies, fetchPricePostcodeDefinitions } from "../../helpers/OrderModel";
 
 describe('Testing delivery week', () => {
 
@@ -70,4 +72,37 @@ describe('Testing delivery week', () => {
         
     });
 
-})
+});
+
+
+
+describe('Testing fetching documents', () => {
+
+    test('Fetching birdSpecies document', async () => {
+
+        const birdSpeciesDocument = await fetchBirdSpecies(db);
+        console.log(birdSpeciesDocument.species[0].prices);
+        
+        const docRef = db.collection("Settings").doc('birdSpecies');
+
+        const docSnap = await docRef.get();
+
+        expect(docSnap.exists).toBe(true);
+        expect(docSnap.data()).toEqual(birdSpeciesDocument);
+        
+    });
+
+    test('Fetching priceDefinitions document', async () => {
+
+        const priceDefinitionsDocument = await fetchPricePostcodeDefinitions(db);
+        
+        const docRef = db.collection("Settings").doc('priceDefinitions');
+
+        const docSnap = await docRef.get();
+
+        expect(docSnap.exists).toBe(true);
+        expect(docSnap.data()).toEqual(priceDefinitionsDocument);
+        
+    });
+
+});
