@@ -6,6 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 firebase-debug.log*
 firebase-debug.*.log*
+highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json
 
 # Firebase cache
 .firebase/
