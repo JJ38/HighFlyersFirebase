@@ -1,20 +1,12 @@
 import { DateTime } from "luxon";
-<<<<<<< HEAD
-import { getDeliveryWeek } from "../../helpers/OrderModel";
-import { integrationTestDB } from "../../helpers/Firebase"; 
-import { integrationTestDB, storeOrderUrl } from "../../helpers/Firebase"; 
-
-
-const emulatorUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/storeorder';
-// const url = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/storeorder';
-
-=======
 import { getDeliveryWeek } from "../../helpers/OrderModel.js";
 import { integrationTestDB, storeOrderUrl } from "../../helpers/Firebase.js"; 
 
->>>>>>> 5e00550 (added flag to middleware for integration testing so it bypasses middelware)
 const db = integrationTestDB;
 const url = storeOrderUrl;
+
+
+//{"clientSideUUID":"049434cf-f7dd-4545-88ba-c1d0c3f1c79b","animalType":"Pigeons - Young Birds","quantity":"2","code":"jgxgkx","boxes":"2","email":"jamesbrass@ymail.com","collectionName":"James brass","collectionAddressLine1":"10 Kenilworth road","collectionAddressLine2":"Ripley","collectionAddressLine3":"Derbyshire","collectionPostcode":"DE5 3GY","collectionPhoneNumber":"07842133519","deliveryName":"james","deliveryAddressLine1":"gkxgkxxgk","deliveryAddressLine2":null,"deliveryAddressLine3":null,"deliveryPostcode":"DE56 1LF ","deliveryPhoneNumber":"07123456789","payment":"Delivery","message":null},
 
 describe('validateOrder on emulator', () => {
 
@@ -524,11 +516,11 @@ describe('Storing orders', () => {
 
     });
 
-    test.only('Valid order', async () => {
+    test('Valid order', async () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(validOrder),
+            body: JSON.stringify([validOrder]),
             headers: { 'Content-Type': 'application/json' },
         });
 
@@ -536,8 +528,9 @@ describe('Storing orders', () => {
 
         const docID = json.docID;
 
+        console.log(json);
         console.log(json.message);
-        console.log(json.errorLog);
+
 
         expect(res.status).toBe(200);
         expect(json.error).toBe(false);
@@ -558,5 +551,38 @@ describe('Storing orders', () => {
         expect(storedData.ID).toBeGreaterThan(0);
 
     });
+
+    test.only('Multiple Valid orders', async () => {
+
+        const res = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify([validOrder,validOrder,validOrder,validOrder,validOrder,validOrder]),
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        const json = await res.json();
+
+        console.log(json);
+
+        expect(res.status).toBe(200);
+        expect(json.error).toBe(false);
+
+        // const docRef = db.collection("test").doc(docID);
+
+        // const docSnap = await docRef.get();
+
+        // expect(docSnap.exists).toBe(true);
+        
+        // const storedData = docSnap.data();
+
+        // const londonTime = DateTime.now().setZone('Europe/London');
+        // const deliveryWeek = getDeliveryWeek(londonTime);
+
+        // expect(storedData.deliveryWeek).toBe(deliveryWeek);
+        // expect(storedData.price).toBe(57);
+        // expect(storedData.ID).toBeGreaterThan(0);
+
+    }, 10000);
+
 
 });

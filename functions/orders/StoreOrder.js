@@ -30,13 +30,16 @@ export const storeorder = onRequest(async (req, res) => {
 
         }   
 
-        const validationError = validateForm(formJSON, Array.from(birdSpeciesSet));
 
+        //validate each order
+        for(let i = 0; i < formJSON.length; i++){
+            
+            const validationError = validateForm(formJSON[i], Array.from(birdSpeciesSet));
+            if(validationError != null) {
+                return res.status(400).json({error: true, message: validationError + " - order at index: " + i});
+            }
 
-        if(validationError != null) {
-            return res.status(400).json({error: true, message: validationError});
         }
-
 
         //get delivery week
         const londonTime = DateTime.now().setZone('Europe/London');
@@ -44,6 +47,12 @@ export const storeorder = onRequest(async (req, res) => {
 
         formJSON['deliveryWeek'] = deliveryWeek;
 
+        //add delivery week to each order
+        for(let i = 0; i < formJSON.length; i++){
+
+            formJSON[i]['deliveryWeek'] = deliveryWeek;
+
+        }
 
         //get order price
         const pricePostcodeDefinitions = await fetchPricePostcodeDefinitions(db);
@@ -51,30 +60,51 @@ export const storeorder = onRequest(async (req, res) => {
             return res.status(500).json({error: true, message: "Internal Server Error", errorLog: "postcodeDefinitions is false"});
         }
 
-        const orderPrice = calculateOrderPrice(formJSON['collectionPostcode'], formJSON['collectionPostcode'], formJSON['quantity'], formJSON['boxes'], formJSON['animalType'], birdSpecies, pricePostcodeDefinitions);
-        formJSON['price'] = orderPrice ? orderPrice : "N/A";
 
-        const ID = await getOrderID(db);
-        formJSON['ID'] = ID;
+        for(let i = 0; i < formJSON.length; i++){
+
+            const orderPrice = calculateOrderPrice(formJSON[i]['collectionPostcode'], formJSON[i]['collectionPostcode'], formJSON[i]['quantity'], formJSON[i]['boxes'], formJSON[i]['animalType'], birdSpecies, pricePostcodeDefinitions);
+            formJSON[i]['price'] = orderPrice ? orderPrice : "N/A";
+
+        }
+
+        //return a list of ids
+        const newHighID = await getOrderID(db, formJSON.length);
+
+        for(let i = 0; i < formJSON.length; i++){
+
+            formJSON[i]['ID'] = newHighID - formJSON.length + i + 1;
+
+        }
 
         try {
 
-            const ordersCollection = db.collection('test');
+            const documentIDs = [];
 
-            const docRef = await ordersCollection.add(formJSON);
+            const batch = db.batch();
 
-            return res.status(200).json({error: false, docID: docRef.id});
+            for(let i = 0; i < formJSON.length; i++){
+
+                const orderDocRef = db.collection('test').doc();
+                documentIDs.push(orderDocRef.id);
+                batch.set(orderDocRef, formJSON[i]);
+
+            }
+
+            await batch.commit();
+
+            return res.status(200).json({error: false, ordersSubmitted: formJSON.length, message: "Successfully stored order(s)", documentIDs: documentIDs.toString()});
 
         } catch (error) {
 
-            console.error('Error saving order to Firestore:', error);
+            console.error('Batch write failed: ', error);
             return res.status(502).json({error: true, message: "failed to store valid order",});
 
         }
     
     }catch(error){
         console.log(error);
-        return res.status(503).json({error: true, message: "Internal Server Error", errorLog: error.toString()});
+        return res.status(503).json({error: true, message: "Internal Server Error", errorLog: error});
     }
 
 });

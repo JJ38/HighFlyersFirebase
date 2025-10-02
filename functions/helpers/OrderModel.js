@@ -1,5 +1,6 @@
 
-export async function getOrderID(db){
+//increases IDTRACKER by the number of orders. To then assign ids to orders do newID - number of orders + order within request (i + 1)
+export async function getOrderID(db, numberOfOrders){
 
     const IDDocRef = db.collection("MetaData").doc("IDTRACKER");
 
@@ -17,7 +18,11 @@ export async function getOrderID(db){
             //ID of newest order
             const currentID = IDDoc.data();
         
-            const newOrderID = currentID['ID'] + 1;
+            const newOrderID = currentID['ID'] + numberOfOrders;
+
+            if(newOrderID == NaN){
+                return false;
+            }
 
             transaction.set(IDDocRef, { ID: newOrderID }, { merge: true });
 
