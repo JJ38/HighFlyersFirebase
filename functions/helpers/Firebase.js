@@ -1,6 +1,6 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
-import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
+// import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
 
 export const environment = "TESTING";
 export const middlewareStatus = "TESTING";
@@ -15,20 +15,24 @@ if (!getApps().length) {
 
 }
 
+// remove emulator var if set
 delete process.env.FIRESTORE_EMULATOR_HOST;
 
-export let integrationTestDB;
 export let cloudFunctionDB;
-export let db;
+export let integrationTestDB; 
+export let storeOrderUrl;
+
 
 if (environment == "TESTING") {
 
     integrationTestDB = getFirestore(undefined, "development");
     cloudFunctionDB = integrationTestDB;
+    storeOrderUrl = 'https://storeorder-qjydin7gka-uc.a.run.app';
 
-} else if(environment == "LIVE") {
+} else if(environment == "LIVE"){
 
-    cloudFunctionDB = getFirestore(undefined, "development");
+    cloudFunctionDB = getFirestore(undefined, "(default)");
+    storeOrderUrl = 'https://storeorder-qjydin7gka-uc.a.run.app';
 
 }
 
@@ -57,4 +61,30 @@ export async function getDocument(q){
         console.log(e);
         return false
     }
+}
+
+export async function validateJWT(req, res, next) {
+
+  const authorization = req.headers.authorization;
+  if (!authorization || !authorization.startsWith("Bearer ")) {
+
+    res.status(403).send("Unauthorized: No Bearer token");
+    return ;
+
+  }
+
+  const idToken = authorization.split("Bearer ")[1];
+
+  try {
+
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    req.user = decodedToken; // Attach user info for later use
+    next();
+
+  } catch (err) {
+
+    console.error("Error while verifying Firebase ID token:", err);
+    res.status(403).send("Unauthorized: Invalid token");
+
+  }
 }

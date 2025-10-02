@@ -20,8 +20,6 @@ export function validateForm(formJSON, validAnimalTypes){
             return "Collection Telephone is not a valid phone number. Please enter an 11 digit phone number";
         }
 
-        //validate email
-
         if(!formJSON.email.match(isEmail)){
             return "Email is not valid";
         }
@@ -41,12 +39,13 @@ export function validateForm(formJSON, validAnimalTypes){
         if(!isNumber.test(formJSON.boxes) || parseInt(formJSON.boxes) < 1 || formJSON.boxes == ""){
             return "Boxes is not a valid number. Please enter a number greater than 0";
         }
-    
+
     }catch(e){
 
         return "Validation Error - make sure all required fields are in the json and non values are null";
     }
 
-
     return null;
 }
+
+

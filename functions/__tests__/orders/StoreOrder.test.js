@@ -1,10 +1,14 @@
 import { DateTime } from "luxon";
 import { getDeliveryWeek } from "../../helpers/OrderModel";
 import { integrationTestDB } from "../../helpers/Firebase"; 
+import { integrationTestDB, storeOrderUrl } from "../../helpers/Firebase"; 
+
 
 const emulatorUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/storeorder';
+// const url = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/storeorder';
 
 const db = integrationTestDB;
+const url = storeOrderUrl;
 
 describe('validateOrder on emulator', () => {
 
@@ -81,7 +85,7 @@ describe('validateOrder on emulator', () => {
 
     test('Invalid Json', async () => {
 
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: 'this is not valid json',
             headers: { 'Content-Type': 'application/json' }
@@ -93,7 +97,7 @@ describe('validateOrder on emulator', () => {
 
     test('Invalid Json with missing header', async () => {
 
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: 'this is not valid json',
         });
@@ -107,7 +111,7 @@ describe('validateOrder on emulator', () => {
         const order = validOrder;
         order['collectionPhoneNumber'] = "0712345678";
 
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' }
@@ -123,7 +127,7 @@ describe('validateOrder on emulator', () => {
     test('Invalid Delivery Phone Number (non-numeric)', async () => {
         const order = { ...validOrder, deliveryPhoneNumber: 'abc12345678' };
 
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' },
@@ -138,7 +142,7 @@ describe('validateOrder on emulator', () => {
     test('Invalid Delivery Phone Number (incorrect length)', async () => {
         const order = { ...validOrder, deliveryPhoneNumber: '071234567' };
 
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' },
@@ -153,7 +157,7 @@ describe('validateOrder on emulator', () => {
     test('Invalid Collection Phone Number (non-numeric)', async () => {
         const order = { ...validOrder, collectionPhoneNumber: 'abc12345678' };
 
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' }
@@ -168,7 +172,7 @@ describe('validateOrder on emulator', () => {
     test('Invalid Collection Phone Number (incorrect length)', async () => {
         const order = { ...validOrder, collectionPhoneNumber: '0712345678' };
 
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' }
@@ -183,7 +187,7 @@ describe('validateOrder on emulator', () => {
     test('Invalid Email', async () => {
         const order = { ...validOrder, email: 'invalid-email' };
 
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' }
@@ -198,7 +202,7 @@ describe('validateOrder on emulator', () => {
     test('Invalid Payment Option', async () => {
         const order = { ...validOrder, payment: 'bitcoin' };
 
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' }
@@ -213,7 +217,7 @@ describe('validateOrder on emulator', () => {
     test('Invalid Animal Type', async () => {
         const order = { ...validOrder, animalType: 'lion' };
 
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' }
@@ -228,7 +232,7 @@ describe('validateOrder on emulator', () => {
     test('Invalid Quantity (non-numeric)', async () => {
         const order = { ...validOrder, quantity: 'five' };
 
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' }
@@ -243,7 +247,7 @@ describe('validateOrder on emulator', () => {
     test('Invalid Quantity (zero)', async () => {
         const order = { ...validOrder, quantity: '0' };
 
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' }
@@ -258,7 +262,7 @@ describe('validateOrder on emulator', () => {
     test('Invalid Boxes (non-numeric)', async () => {
         const order = { ...validOrder, boxes: 'two' };
 
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' }
@@ -273,7 +277,7 @@ describe('validateOrder on emulator', () => {
     test('Invalid Boxes (zero)', async () => {
         const order = { ...validOrder, boxes: '0' };
 
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' }
@@ -287,7 +291,7 @@ describe('validateOrder on emulator', () => {
 
     test('Null Delivery Phone Number', async () => {
         const order = { ...validOrder, deliveryPhoneNumber: null };
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' },
@@ -301,7 +305,7 @@ describe('validateOrder on emulator', () => {
 
     test('Null Collection Phone Number', async () => {
         const order = { ...validOrder, collectionPhoneNumber: null };
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' },
@@ -315,7 +319,7 @@ describe('validateOrder on emulator', () => {
 
     test('Empty String for Delivery Phone Number', async () => {
         const order = { ...validOrder, deliveryPhoneNumber: "" };
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' },
@@ -329,7 +333,7 @@ describe('validateOrder on emulator', () => {
     
     test('Empty String for Collection Phone Number', async () => {
         const order = { ...validOrder, collectionPhoneNumber: "" };
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' },
@@ -343,7 +347,7 @@ describe('validateOrder on emulator', () => {
 
     test('Empty String for Email', async () => {
         const order = { ...validOrder, email: "" };
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' },
@@ -357,7 +361,7 @@ describe('validateOrder on emulator', () => {
 
     test('Empty String for Payment Option', async () => {
         const order = { ...validOrder, payment: "" };
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' },
@@ -371,7 +375,7 @@ describe('validateOrder on emulator', () => {
 
     test('Empty String for Animal Type', async () => {
         const order = { ...validOrder, animalType: "" };
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' },
@@ -385,7 +389,7 @@ describe('validateOrder on emulator', () => {
 
     test('Empty String for Quantity', async () => {
         const order = { ...validOrder, quantity: "" };
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' },
@@ -399,7 +403,7 @@ describe('validateOrder on emulator', () => {
 
     test('Empty String for Boxes', async () => {
         const order = { ...validOrder, boxes: "" };
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(order),
             headers: { 'Content-Type': 'application/json' },
@@ -411,8 +415,8 @@ describe('validateOrder on emulator', () => {
         expect(json.message).toBe("Boxes is not a valid number. Please enter a number greater than 0");
     });
 
-    test('Completely empty body', async () => {
-        const res = await fetch(emulatorUrl, {
+    test.only('Completely empty body', async () => {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify({}),
             headers: { 'Content-Type': 'application/json' },
@@ -431,10 +435,12 @@ describe('Storing orders', () => {
 
     
     let deliveryWeek;
+    let time;
+
 
     let validOrder = {
 
-        ID: 1234,
+        ID: 0,
         animalType: "Pigeons - Young Birds",
         email: "jamesbrass@ymail.com",
         quantity: 2,
@@ -462,7 +468,7 @@ describe('Storing orders', () => {
         code: "",
         addedBy: "",
         printed: "Not Printed",
-        timestamp: "2025-08-27 20:21:38",
+        timestamp: time,
 
     }
 
@@ -470,6 +476,7 @@ describe('Storing orders', () => {
 
         const londonTime = DateTime.now().setZone('Europe/London');
         deliveryWeek = getDeliveryWeek(londonTime);
+        time = londonTime.toFormat("yyyy-MM-dd HH:mm:ss");
 
     });
 
@@ -477,10 +484,10 @@ describe('Storing orders', () => {
 
         validOrder = {
 
-            ID: 1234,
+            ID: 0,
             animalType: "Pigeons - Young Birds",
             email: "jamesbrass@ymail.com",
-            quantity: 2,
+            quantity: 13,
             boxes: 2,
             username: "customer",
             deliveryWeek: deliveryWeek,
@@ -505,39 +512,15 @@ describe('Storing orders', () => {
             code: "",
             addedBy: "",
             printed: "Not Printed",
-            timestamp: "2025-08-27 20:21:38",
+            timestamp: time,
 
         };
 
     });
 
-    test.only('Valid order', async () => {
+    test('Valid order', async () => {
 
-        const res = await fetch(emulatorUrl, {
-            method: 'POST',
-            body: JSON.stringify(validOrder),
-            headers: { 'Content-Type': 'application/json' },
-        });
-
-        const json = await res.json();
-
-        const docID = json.docID;
-
-        expect(res.status).toBe(200);
-        expect(json.error).toBe(false);
-
-        const docRef = db.collection("test").doc(docID);
-
-        const docSnap = await docRef.get();
-
-        expect(docSnap.exists).toBe(true);
-        expect(docSnap.data()).toEqual(validOrder);
-
-    });
-
-    test('Valid delivery week', async () => {
-
-        const res = await fetch(emulatorUrl, {
+        const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(validOrder),
             headers: { 'Content-Type': 'application/json' },
@@ -550,22 +533,23 @@ describe('Storing orders', () => {
         console.log(json.message);
         console.log(json.errorLog);
 
-
         expect(res.status).toBe(200);
         expect(json.error).toBe(false);
 
-        // const docRef = db.collection("test").doc(docID);
+        const docRef = db.collection("test").doc(docID);
 
-        // const docSnap = await docRef.get();
+        const docSnap = await docRef.get();
 
-        // expect(docSnap.exists).toBe(true);
+        expect(docSnap.exists).toBe(true);
         
-        // const storedData = docSnap.data();
+        const storedData = docSnap.data();
 
-        // const londonTime = DateTime.now().setZone('Europe/London');
-        // const deliveryWeek = getDeliveryWeek(londonTime);
+        const londonTime = DateTime.now().setZone('Europe/London');
+        const deliveryWeek = getDeliveryWeek(londonTime);
 
-        // expect(storedData.deliveryWeek).toBe(deliveryWeek);
+        expect(storedData.deliveryWeek).toBe(deliveryWeek);
+        expect(storedData.price).toBe(57);
+        expect(storedData.ID).toBeGreaterThan(0);
 
     });
 

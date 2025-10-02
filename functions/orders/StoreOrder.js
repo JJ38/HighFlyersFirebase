@@ -3,17 +3,15 @@ import { DateTime } from "luxon";
 import { logger } from "firebase-functions";
 
 import { validateForm } from "../helpers/Validator.js";
-import { getDeliveryWeek, getOrderID, fetchBirdSpecies, fetchPricePostcodeDefinitions, calculateOrderPrice } from "../helpers/OrderModel.js";
-
-import { cloudFunctionDB } from "../helpers/Firebase.js";
-
+import { getDeliveryWeek, calculateOrderPrice, getOrderID, fetchBirdSpecies, fetchPricePostcodeDefinitions } from "../helpers/OrderModel.js";
+import { integrationTestDB } from "../helpers/Firebase.js";
 
 
 export const storeorder = onRequest(async (req, res) => {
 
-    const db = cloudFunctionDB;
-
     let birdSpeciesSet = new Set();
+    const db = integrationTestDB;
+
 
     try{
 
@@ -41,33 +39,23 @@ export const storeorder = onRequest(async (req, res) => {
 
 
         //get delivery week
-
         const londonTime = DateTime.now().setZone('Europe/London');
         const deliveryWeek = getDeliveryWeek(londonTime);
 
         formJSON['deliveryWeek'] = deliveryWeek;
 
+
+        //get order price
         const pricePostcodeDefinitions = await fetchPricePostcodeDefinitions(db);
-
-        //get price
-        let price = calculateOrderPrice(formJSON['collectionPostcode'], formJSON['deliveryPostcode'], formJSON['quantity'], formJSON['boxes'], formJSON['animalType'], birdSpecies, pricePostcodeDefinitions);
-
-        if(price == false){
-            price = "N/A";
+        if(pricePostcodeDefinitions == false){
+            return res.status(500).json({error: true, message: "Internal Server Error", errorLog: "postcodeDefinitions is false"});
         }
 
-        formJSON['price'] = price;
+        const orderPrice = calculateOrderPrice(formJSON['collectionPostcode'], formJSON['collectionPostcode'], formJSON['quantity'], formJSON['boxes'], formJSON['animalType'], birdSpecies, pricePostcodeDefinitions);
+        formJSON['price'] = orderPrice ? orderPrice : "N/A";
 
-
-        //id
-
-        const orderID = getOrderID(db);
-
-        if(orderID == false){
-            return res.status(400).json({error: true, message: "Error storing order. Couldnt get ID"});
-        }
-
-        formJSON['ID'] = orderID;
+        const ID = await getOrderID(db);
+        formJSON['ID'] = ID;
 
         try {
 

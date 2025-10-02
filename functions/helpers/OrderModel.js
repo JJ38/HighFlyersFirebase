@@ -1,58 +1,44 @@
 
 export async function getOrderID(db){
 
+    const IDDocRef = db.collection("MetaData").doc("IDTRACKER");
+
     try{
 
-        //transaction to increment document
-        const newOrderId = await db.runTransaction(async (transaction) => {
+        const newId = await db.runTransaction(async (transaction) => {
 
-            const metaDataDocRef = db.collection("Settings").doc("MetaData");
+            //needed due to optimistic concurrency control
+            const IDDoc = await transaction.get(IDDocRef);
 
-            const metaDataDoc = await transaction.get(metaDataDocRef);
-
-            if(!metaDataDoc.exists){
-                console.log("!metaDataDoc.exists");
+            if(!IDDoc.exists){
                 return false;
             }
 
-            const metaDataDocData = metaDataDoc.data();
+            //ID of newest order
+            const currentID = IDDoc.data();
+        
+            const newOrderID = currentID['ID'] + 1;
 
-            if(metaDataDocData == null){
-                console.log("metaDataDocData");
+            transaction.set(IDDocRef, { ID: newOrderID }, { merge: true });
 
-                return false;
-            }
-
-            //current highest ID of order in system
-            const currentID = metaDataDocData['IDTRACKER'];
-
-            const newId = currentID + 1;
-
-            // Update the counter
-            transaction.set(metaDataDocRef, { ID: newId }, { merge: true });
-
-            return newId;
+            return newOrderID;
         });
 
-        console.log("newOrderID: " + newOrderId);
-
-        return newOrderId;
+        return newId;
 
     }catch(e){
-        console.log(e);
+
         return false;
+
     }
- 
 
 }
-
 
 //https://en.wikipedia.org/wiki/ISO_8601
 //As a consequence, if 1 January is on a Monday, Tuesday, Wednesday or Thursday, it is in week 01. 
 //If 1 January is on a Friday, Saturday or Sunday, it is in week 52 or 53 of the previous year (there is no week 00). 28 December is always in the last week of its year.
 
 //Years where Jan 1 falls on a Thursday or Dec 31 falls on a Thursday (in a leap year: Wednesday or Thursday) will have a week 53.
-
 
 export function getDeliveryWeek(currentDate){
 
@@ -73,14 +59,14 @@ export function getDeliveryWeek(currentDate){
 
 }
 
-
 export async function fetchBirdSpecies(db){
 
     try {
 
-        
-        const docRef = db.collection("Settings").doc("birdSpecies");
+        console.log("fetchbirdspecies db id: " + db._databaseId);
 
+        const docRef = db.collection("Settings").doc("birdSpecies");
+     
         const birdSpeciesDocument = await docRef.get();
 
         if(birdSpeciesDocument == false){
@@ -125,8 +111,8 @@ export async function fetchPricePostcodeDefinitions(db){
 }
 
 export function calculateOrderPrice(collectionPostcodeInput, deliveryPostcodeInput, quantity, boxes, animalType, birdSpecies, pricePostcodeDefinitions){
-    
 
+    // validated seperate as I want order to go through without price so ill allow invalid postcode but need to check its valid to calculate price
     const collectionPostcode = validatePostcode(collectionPostcodeInput, pricePostcodeDefinitions);
     if(collectionPostcode == false){
         return false;
