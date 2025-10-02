@@ -7,6 +7,11 @@ export function validateForm(formJSON, validAnimalTypes){
 
     try{
 
+        //parse to ints
+        formJSON.quantity = parseInt(formJSON.quantity);
+        formJSON.boxes = parseInt(formJSON.boxes);
+
+
         const deliveryTelephoneNumber = formJSON.deliveryPhoneNumber.replace(" ", "");
         const collectionTelephoneNumber = formJSON.collectionPhoneNumber.replace(" ", "");
 
