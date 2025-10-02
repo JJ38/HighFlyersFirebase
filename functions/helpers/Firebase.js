@@ -1,6 +1,6 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
-// import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
+import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
 
 <<<<<<< HEAD
 export const environment = "TESTING";
@@ -16,10 +16,14 @@ if (!getApps().length) {
 
     initializeApp({
 <<<<<<< HEAD
+<<<<<<< HEAD
         credential: cert(serviceAccount),
 =======
         // credential: cert(serviceAccount),
 >>>>>>> ad04047 (updated cloud functions to have authentication middleware and json validation middleware)
+=======
+        credential: cert(serviceAccount),
+>>>>>>> 5e00550 (added flag to middleware for integration testing so it bypasses middelware)
         projectId: "highflyersukcouriers-a9c17",
     });
 
@@ -28,6 +32,11 @@ if (!getApps().length) {
 // remove emulator var if set
 delete process.env.FIRESTORE_EMULATOR_HOST;
 
+<<<<<<< HEAD
+=======
+export let storeOrderUrl;
+export let integrationTestDB;
+>>>>>>> 5e00550 (added flag to middleware for integration testing so it bypasses middelware)
 export let cloudFunctionDB;
 export let integrationTestDB; 
 export let storeOrderUrl;
@@ -37,7 +46,11 @@ if (environment == "TESTING") {
 
     integrationTestDB = getFirestore(undefined, "development");
     cloudFunctionDB = integrationTestDB;
+<<<<<<< HEAD
     storeOrderUrl = 'https://storeorder-qjydin7gka-uc.a.run.app';
+=======
+    storeOrderUrl = "http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/storeorder";
+>>>>>>> 5e00550 (added flag to middleware for integration testing so it bypasses middelware)
 
 } else if(environment == "LIVE"){
 

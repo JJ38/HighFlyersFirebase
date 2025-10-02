@@ -1,4 +1,5 @@
 import { DateTime } from "luxon";
+<<<<<<< HEAD
 import { getDeliveryWeek } from "../../helpers/OrderModel";
 import { integrationTestDB } from "../../helpers/Firebase"; 
 import { integrationTestDB, storeOrderUrl } from "../../helpers/Firebase"; 
@@ -7,6 +8,11 @@ import { integrationTestDB, storeOrderUrl } from "../../helpers/Firebase";
 const emulatorUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/storeorder';
 // const url = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/storeorder';
 
+=======
+import { getDeliveryWeek } from "../../helpers/OrderModel.js";
+import { integrationTestDB, storeOrderUrl } from "../../helpers/Firebase.js"; 
+
+>>>>>>> 5e00550 (added flag to middleware for integration testing so it bypasses middelware)
 const db = integrationTestDB;
 const url = storeOrderUrl;
 
@@ -415,7 +421,7 @@ describe('validateOrder on emulator', () => {
         expect(json.message).toBe("Boxes is not a valid number. Please enter a number greater than 0");
     });
 
-    test.only('Completely empty body', async () => {
+    test('Completely empty body', async () => {
         const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify({}),
@@ -518,7 +524,7 @@ describe('Storing orders', () => {
 
     });
 
-    test('Valid order', async () => {
+    test.only('Valid order', async () => {
 
         const res = await fetch(url, {
             method: 'POST',
