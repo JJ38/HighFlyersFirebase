@@ -1,4 +1,52 @@
 
+export async function getOrderID(db){
+
+    try{
+
+        //transaction to increment document
+        const newOrderId = await db.runTransaction(async (transaction) => {
+
+            const metaDataDocRef = db.collection("Settings").doc("MetaData");
+
+            const metaDataDoc = await transaction.get(metaDataDocRef);
+
+            if(!metaDataDoc.exists){
+                console.log("!metaDataDoc.exists");
+                return false;
+            }
+
+            const metaDataDocData = metaDataDoc.data();
+
+            if(metaDataDocData == null){
+                console.log("metaDataDocData");
+
+                return false;
+            }
+
+            //current highest ID of order in system
+            const currentID = metaDataDocData['IDTRACKER'];
+
+            const newId = currentID + 1;
+
+            // Update the counter
+            transaction.set(metaDataDocRef, { ID: newId }, { merge: true });
+
+            return newId;
+        });
+
+        console.log("newOrderID: " + newOrderId);
+
+        return newOrderId;
+
+    }catch(e){
+        console.log(e);
+        return false;
+    }
+ 
+
+}
+
+
 //https://en.wikipedia.org/wiki/ISO_8601
 //As a consequence, if 1 January is on a Monday, Tuesday, Wednesday or Thursday, it is in week 01. 
 //If 1 January is on a Friday, Saturday or Sunday, it is in week 52 or 53 of the previous year (there is no week 00). 28 December is always in the last week of its year.
@@ -25,17 +73,6 @@ export function getDeliveryWeek(currentDate){
 
 }
 
-// export function getOrderPrice(order, birdSpecies, postcodeDefinitions){
-
-//     fetchBirdSpecies();
-//     fetchPricePostcodeDefinitions();
-
-
-
-//     return "N/A";
-
-// }
-
 
 export async function fetchBirdSpecies(db){
 
@@ -43,11 +80,8 @@ export async function fetchBirdSpecies(db){
 
         
         const docRef = db.collection("Settings").doc("birdSpecies");
-        console.log("Doc path:", docRef.path);
 
         const birdSpeciesDocument = await docRef.get();
-        console.log("Exists?", birdSpeciesDocument.exists);
-        console.log("Data:", birdSpeciesDocument.data());
 
         if(birdSpeciesDocument == false){
             return false;
@@ -90,22 +124,8 @@ export async function fetchPricePostcodeDefinitions(db){
 
 }
 
-export function calculateOrderPrice(collectionPostcodeInput, deliveryPostcodeInput, quantityInput, boxesInput, animalTypeInput, birdSpecies, pricePostcodeDefinitions, birdSpeciesSet){
+export function calculateOrderPrice(collectionPostcodeInput, deliveryPostcodeInput, quantity, boxes, animalType, birdSpecies, pricePostcodeDefinitions){
     
-    const animalType = validateAnimalType(animalTypeInput, birdSpeciesSet);
-    if(animalType == false){
-        return false;
-    }
-
-    const quantity = validatePositiveInteger(quantityInput);
-    if(quantity == false){
-        return false;
-    }
-
-    const boxes = validatePositiveInteger(boxesInput);
-    if(boxes == false){
-        return false;
-    }
 
     const collectionPostcode = validatePostcode(collectionPostcodeInput, pricePostcodeDefinitions);
     if(collectionPostcode == false){
@@ -136,26 +156,6 @@ export function calculateOrderPrice(collectionPostcodeInput, deliveryPostcodeInp
     }
 
     return tally;
-
-}
-
-function validatePositiveInteger(quantity){
-
-    const quantityInt = parseInt(quantity);
-    if(quantityInt > 0){
-        return quantityInt;
-    }
-
-    return false;
-}
-
-function validateAnimalType(animalType, validAnimalTypes){
-    
-    if(validAnimalTypes.has(animalType)){
-        return animalType;
-    }
-
-    return false;
 
 }
 

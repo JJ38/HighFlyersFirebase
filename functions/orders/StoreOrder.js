@@ -3,13 +3,15 @@ import { DateTime } from "luxon";
 import { logger } from "firebase-functions";
 
 import { validateForm } from "../helpers/Validator.js";
-import { getDeliveryWeek, fetchBirdSpecies } from "../helpers/OrderModel.js";
+import { getDeliveryWeek, getOrderID, fetchBirdSpecies, fetchPricePostcodeDefinitions, calculateOrderPrice } from "../helpers/OrderModel.js";
 
-import { db } from "../helpers/Firebase.js";
+import { cloudFunctionDB } from "../helpers/Firebase.js";
 
 
 
 export const storeorder = onRequest(async (req, res) => {
+
+    const db = cloudFunctionDB;
 
     let birdSpeciesSet = new Set();
 
@@ -17,14 +19,6 @@ export const storeorder = onRequest(async (req, res) => {
 
         //this is converted to a json object automatically within the express.js framework
         const formJSON = req.body;
-
-        if(formJSON == null){
-            return res.status(400).json({error: true, message: "The request body cannot be null and must be a of type application/json"});
-        } 
-
-        if (req.get('Content-Type') !== 'application/json') {
-            return res.status(400).json({error: true, message: "Request must be of content type application/json"});
-        }
 
         const birdSpecies = await fetchBirdSpecies(db);
 
@@ -53,6 +47,27 @@ export const storeorder = onRequest(async (req, res) => {
 
         formJSON['deliveryWeek'] = deliveryWeek;
 
+        const pricePostcodeDefinitions = await fetchPricePostcodeDefinitions(db);
+
+        //get price
+        let price = calculateOrderPrice(formJSON['collectionPostcode'], formJSON['deliveryPostcode'], formJSON['quantity'], formJSON['boxes'], formJSON['animalType'], birdSpecies, pricePostcodeDefinitions);
+
+        if(price == false){
+            price = "N/A";
+        }
+
+        formJSON['price'] = price;
+
+
+        //id
+
+        const orderID = getOrderID(db);
+
+        if(orderID == false){
+            return res.status(400).json({error: true, message: "Error storing order. Couldnt get ID"});
+        }
+
+        formJSON['ID'] = orderID;
 
         try {
 

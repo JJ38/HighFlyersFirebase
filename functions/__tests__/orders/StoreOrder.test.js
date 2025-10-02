@@ -1,14 +1,10 @@
-// process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
-
 import { DateTime } from "luxon";
 import { getDeliveryWeek } from "../../helpers/OrderModel";
-// import { db } from "../../helpers/Firebase"; 
+import { integrationTestDB } from "../../helpers/Firebase"; 
 
-// const admin = require("firebase-admin");
-// const app = admin.initializeApp({projectId: "highflyersukcouriers-a9c17"});
-// const db = admin.firestore(app);
+const emulatorUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/storeorder';
 
-const emulatorUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/storeorder';
+const db = integrationTestDB;
 
 describe('validateOrder on emulator', () => {
 
