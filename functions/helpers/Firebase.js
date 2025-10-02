@@ -2,14 +2,24 @@ import { getFirestore } from "firebase-admin/firestore";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 // import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
 
+<<<<<<< HEAD
 export const environment = "TESTING";
 export const middlewareStatus = "TESTING";
 
+=======
+// const serviceAccount = JSON.parse(readFileSync("../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json"));
+
+const environment = "TESTING";
+>>>>>>> ad04047 (updated cloud functions to have authentication middleware and json validation middleware)
 
 if (!getApps().length) {
 
     initializeApp({
+<<<<<<< HEAD
         credential: cert(serviceAccount),
+=======
+        // credential: cert(serviceAccount),
+>>>>>>> ad04047 (updated cloud functions to have authentication middleware and json validation middleware)
         projectId: "highflyersukcouriers-a9c17",
     });
 
