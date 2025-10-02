@@ -1,12 +1,10 @@
 import { DateTime } from "luxon";
 import { getDeliveryWeek } from "../../helpers/OrderModel.js";
-import { integrationTestDB, storeOrderUrl } from "../../helpers/Firebase.js"; 
+import { integrationTestDB, storeOrderUrl, storeCollectionNameOrders } from "../../helpers/Firebase.js"; 
 
 const db = integrationTestDB;
 const url = storeOrderUrl;
 
-
-//{"clientSideUUID":"049434cf-f7dd-4545-88ba-c1d0c3f1c79b","animalType":"Pigeons - Young Birds","quantity":"2","code":"jgxgkx","boxes":"2","email":"jamesbrass@ymail.com","collectionName":"James brass","collectionAddressLine1":"10 Kenilworth road","collectionAddressLine2":"Ripley","collectionAddressLine3":"Derbyshire","collectionPostcode":"DE5 3GY","collectionPhoneNumber":"07842133519","deliveryName":"james","deliveryAddressLine1":"gkxgkxxgk","deliveryAddressLine2":null,"deliveryAddressLine3":null,"deliveryPostcode":"DE56 1LF ","deliveryPhoneNumber":"07123456789","payment":"Delivery","message":null},
 
 describe('validateOrder on emulator', () => {
 
@@ -505,7 +503,7 @@ describe('Storing orders', () => {
             deliveryPhoneNumber: "07123456789",
 
             payment: "Collection",
-            price: 60,
+            price: 0,
             message: "",
             code: "",
             addedBy: "",
@@ -516,7 +514,7 @@ describe('Storing orders', () => {
 
     });
 
-    test('Valid order', async () => {
+    test.only('Valid order', async () => {
 
         const res = await fetch(url, {
             method: 'POST',
@@ -531,11 +529,10 @@ describe('Storing orders', () => {
         console.log(json);
         console.log(json.message);
 
-
         expect(res.status).toBe(200);
         expect(json.error).toBe(false);
 
-        const docRef = db.collection("test").doc(docID);
+        const docRef = db.collection(storeCollectionNameOrders).doc(docID);
 
         const docSnap = await docRef.get();
 
@@ -550,9 +547,9 @@ describe('Storing orders', () => {
         expect(storedData.price).toBe(57);
         expect(storedData.ID).toBeGreaterThan(0);
 
-    });
+    }, 10000);
 
-    test.only('Multiple Valid orders', async () => {
+    test('Multiple Valid orders', async () => {
 
         const res = await fetch(url, {
             method: 'POST',
@@ -567,7 +564,7 @@ describe('Storing orders', () => {
         expect(res.status).toBe(200);
         expect(json.error).toBe(false);
 
-        // const docRef = db.collection("test").doc(docID);
+        // const docRef = db.collection(storeCollectionNameOrders).doc(docID);
 
         // const docSnap = await docRef.get();
 
@@ -582,7 +579,7 @@ describe('Storing orders', () => {
         // expect(storedData.price).toBe(57);
         // expect(storedData.ID).toBeGreaterThan(0);
 
-    }, 10000);
+    }, 15000);
 
 
 });

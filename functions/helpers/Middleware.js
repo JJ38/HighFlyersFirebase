@@ -15,6 +15,7 @@ export async function validateFirebaseIdToken(req, res, next) {
 
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     req.user = decodedToken;
+    console.log(decodedToken);
     next(); // continue to the next route handler
 
   } catch (err) {

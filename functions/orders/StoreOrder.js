@@ -4,7 +4,7 @@ import { logger } from "firebase-functions";
 
 import { validateForm } from "../helpers/Validator.js";
 import { getDeliveryWeek, calculateOrderPrice, getOrderID, fetchBirdSpecies, fetchPricePostcodeDefinitions } from "../helpers/OrderModel.js";
-import { integrationTestDB } from "../helpers/Firebase.js";
+import { integrationTestDB, storeCollectionNameOrders } from "../helpers/Firebase.js";
 
 
 export const storeorder = onRequest(async (req, res) => {
@@ -17,6 +17,8 @@ export const storeorder = onRequest(async (req, res) => {
 
         //this is converted to a json object automatically within the express.js framework
         const formJSON = req.body;
+
+        console.log(formJSON);
 
         const birdSpecies = await fetchBirdSpecies(db);
 
@@ -51,6 +53,7 @@ export const storeorder = onRequest(async (req, res) => {
         for(let i = 0; i < formJSON.length; i++){
 
             formJSON[i]['deliveryWeek'] = deliveryWeek;
+            formJSON[i]['timestamp'] = londonTime.toFormat("yyyy-MM-dd HH:mm:ss");
 
         }
 
@@ -68,6 +71,12 @@ export const storeorder = onRequest(async (req, res) => {
 
         }
 
+        for(let i = 0; i < formJSON.length; i++){
+
+            formJSON[i]['account'] = req.user.email.replaceAll("@placeholder.com", "");
+
+        }
+
         //return a list of ids
         const newHighID = await getOrderID(db, formJSON.length);
 
@@ -77,6 +86,7 @@ export const storeorder = onRequest(async (req, res) => {
 
         }
 
+
         try {
 
             const documentIDs = [];
@@ -85,7 +95,7 @@ export const storeorder = onRequest(async (req, res) => {
 
             for(let i = 0; i < formJSON.length; i++){
 
-                const orderDocRef = db.collection('test').doc();
+                const orderDocRef = db.collection(storeCollectionNameOrders).doc();
                 documentIDs.push(orderDocRef.id);
                 batch.set(orderDocRef, formJSON[i]);
 
