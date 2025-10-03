@@ -5,7 +5,7 @@ import { logger } from "firebase-functions";
 import { validateForm } from "../helpers/Validator.js";
 import { getDeliveryWeek, calculateOrderPrice, getOrderID, fetchBirdSpecies, fetchPricePostcodeDefinitions } from "../helpers/OrderModel.js";
 import { environment, integrationTestDB, storeCollectionNameOrders } from "../helpers/Firebase.js";
-import { sendMailCustomer, sendMailInternal } from "../helpers/Mailer.js";
+import { sendMailCustomer, sendMailInternal, getAttachmentHTML } from "../helpers/Mailer.js";
 
 
 export const storeorder = onRequest(async (req, res) => {
@@ -119,15 +119,17 @@ export const storeorder = onRequest(async (req, res) => {
             }
 
             await batch.commit();
+
+            const attachmentHTML = getAttachmentHTML(orderJSON);
             
-            const mailResultCustomer = await sendMailCustomer("mail", profileEmail);
+            const mailResultCustomer = await sendMailCustomer(attachmentHTML, profileEmail);
 
             if(mailResultCustomer === false){
                 console.log("Error sending customer email");
                 return res.status(200).json({error: true, ordersSubmitted: orderJSON.length, message: "Successfully stored order(s) but error sending email", documentIDs: documentIDs.toString()});
             }
 
-            const mailResultInternal = await sendMailInternal("mail");
+            const mailResultInternal = await sendMailInternal(attachmentHTML);
 
             if(mailResultInternal === false){
                 console.log("Error sending internal email");
