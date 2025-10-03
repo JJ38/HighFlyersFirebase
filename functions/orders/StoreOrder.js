@@ -4,7 +4,8 @@ import { logger } from "firebase-functions";
 
 import { validateForm } from "../helpers/Validator.js";
 import { getDeliveryWeek, calculateOrderPrice, getOrderID, fetchBirdSpecies, fetchPricePostcodeDefinitions } from "../helpers/OrderModel.js";
-import { integrationTestDB, storeCollectionNameOrders } from "../helpers/Firebase.js";
+import { environment, integrationTestDB, storeCollectionNameOrders } from "../helpers/Firebase.js";
+import { sendMailCustomer, sendMailInternal } from "../helpers/Mailer.js";
 
 
 export const storeorder = onRequest(async (req, res) => {
@@ -18,7 +19,11 @@ export const storeorder = onRequest(async (req, res) => {
         //this is converted to a json object automatically within the express.js framework
         const formJSON = req.body;
 
+        const orderJSON = formJSON['orderDetails'];
+        const profileEmail = formJSON['profileEmail'];
+
         console.log(formJSON);
+        console.log(orderJSON);
 
         const birdSpecies = await fetchBirdSpecies(db);
 
@@ -34,9 +39,9 @@ export const storeorder = onRequest(async (req, res) => {
 
 
         //validate each order
-        for(let i = 0; i < formJSON.length; i++){
+        for(let i = 0; i < orderJSON.length; i++){
             
-            const validationError = validateForm(formJSON[i], Array.from(birdSpeciesSet));
+            const validationError = validateForm(orderJSON[i], Array.from(birdSpeciesSet));
             if(validationError != null) {
                 return res.status(400).json({error: true, message: validationError + " - order at index: " + i});
             }
@@ -47,13 +52,13 @@ export const storeorder = onRequest(async (req, res) => {
         const londonTime = DateTime.now().setZone('Europe/London');
         const deliveryWeek = getDeliveryWeek(londonTime);
 
-        formJSON['deliveryWeek'] = deliveryWeek;
+        orderJSON['deliveryWeek'] = deliveryWeek;
 
         //add delivery week to each order
-        for(let i = 0; i < formJSON.length; i++){
+        for(let i = 0; i < orderJSON.length; i++){
 
-            formJSON[i]['deliveryWeek'] = deliveryWeek;
-            formJSON[i]['timestamp'] = londonTime.toFormat("yyyy-MM-dd HH:mm:ss");
+            orderJSON[i]['deliveryWeek'] = deliveryWeek;
+            orderJSON[i]['timestamp'] = londonTime.toFormat("yyyy-MM-dd HH:mm:ss");
 
         }
 
@@ -64,25 +69,37 @@ export const storeorder = onRequest(async (req, res) => {
         }
 
 
-        for(let i = 0; i < formJSON.length; i++){
+        for(let i = 0; i < orderJSON.length; i++){
 
-            const orderPrice = calculateOrderPrice(formJSON[i]['collectionPostcode'], formJSON[i]['collectionPostcode'], formJSON[i]['quantity'], formJSON[i]['boxes'], formJSON[i]['animalType'], birdSpecies, pricePostcodeDefinitions);
-            formJSON[i]['price'] = orderPrice ? orderPrice : "N/A";
+            const orderPrice = calculateOrderPrice(orderJSON[i]['collectionPostcode'], orderJSON[i]['collectionPostcode'], orderJSON[i]['quantity'], orderJSON[i]['boxes'], orderJSON[i]['animalType'], birdSpecies, pricePostcodeDefinitions);
+            orderJSON[i]['price'] = orderPrice ? orderPrice : "N/A";
 
         }
 
-        for(let i = 0; i < formJSON.length; i++){
+        let username;
 
-            formJSON[i]['account'] = req.user.email.replaceAll("@placeholder.com", "");
+        if(environment === "TESTING"){
+            username = "integrationTestCustomer";
+        }else{
+            username = req.user.email.replaceAll("@placeholder.com", "");
+        }
+
+        if(username === null){
+            return res.status(500).json({error: true, message: "Internal Server Error", errorLog: "username is null"});
+        }
+
+        for(let i = 0; i < orderJSON.length; i++){
+
+            orderJSON[i]['account'] = username;
 
         }
 
         //return a list of ids
-        const newHighID = await getOrderID(db, formJSON.length);
+        const newHighID = await getOrderID(db, orderJSON.length);
 
-        for(let i = 0; i < formJSON.length; i++){
+        for(let i = 0; i < orderJSON.length; i++){
 
-            formJSON[i]['ID'] = newHighID - formJSON.length + i + 1;
+            orderJSON[i]['ID'] = newHighID - orderJSON.length + i + 1;
 
         }
 
@@ -93,17 +110,30 @@ export const storeorder = onRequest(async (req, res) => {
 
             const batch = db.batch();
 
-            for(let i = 0; i < formJSON.length; i++){
+            for(let i = 0; i < orderJSON.length; i++){
 
                 const orderDocRef = db.collection(storeCollectionNameOrders).doc();
                 documentIDs.push(orderDocRef.id);
-                batch.set(orderDocRef, formJSON[i]);
+                batch.set(orderDocRef, orderJSON[i]);
 
             }
 
             await batch.commit();
+            
+            const mailResultCustomer = await sendMailCustomer("mail", profileEmail);
 
-            return res.status(200).json({error: false, ordersSubmitted: formJSON.length, message: "Successfully stored order(s)", documentIDs: documentIDs.toString()});
+            if(mailResultCustomer === false){
+                console.log("Error sending customer email");
+                return res.status(200).json({error: true, ordersSubmitted: orderJSON.length, message: "Successfully stored order(s) but error sending email", documentIDs: documentIDs.toString()});
+            }
+
+            const mailResultInternal = await sendMailInternal("mail");
+
+            if(mailResultInternal === false){
+                console.log("Error sending internal email");
+            }
+
+            return res.status(200).json({error: false, ordersSubmitted: orderJSON.length, message: "Successfully stored order(s)", documentIDs: documentIDs.toString()});
 
         } catch (error) {
 

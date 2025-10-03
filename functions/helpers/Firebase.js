@@ -1,24 +1,38 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
-// import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
+import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
 
 export const environment = "TESTING";
-export const middlewareStatus = "LIVE";
+export const middlewareStatus = "TESTING";
 export const storeCollectionNameOrders = "Orders";
 
 
+delete process.env.FIRESTORE_EMULATOR_HOST;
 
 if (!getApps().length) {
 
-    initializeApp({
-        // credential: cert(serviceAccount),
-        projectId: "highflyersukcouriers-a9c17",
-    });
+    
+    if (environment == "TESTING") {
+
+        initializeApp({
+            credential: cert(serviceAccount),
+            projectId: "highflyersukcouriers-a9c17",
+        });
+
+    }else if(environment == "LIVE"){
+
+        initializeApp({
+            // credential: cert(serviceAccount),
+            projectId: "highflyersukcouriers-a9c17",
+        });
+
+    }
+
+    
 
 }
 
 // remove emulator var if set
-delete process.env.FIRESTORE_EMULATOR_HOST;
 
 
 export let cloudFunctionDB;
@@ -28,6 +42,7 @@ export let storeOrderUrl;
 
 if (environment == "TESTING") {
 
+    delete process.env.FIRESTORE_EMULATOR_HOST;
     integrationTestDB = getFirestore(undefined, "development");
     cloudFunctionDB = integrationTestDB;
     storeOrderUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/storeorder';

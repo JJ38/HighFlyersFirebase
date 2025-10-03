@@ -479,7 +479,7 @@ describe('Storing orders', () => {
     beforeEach(() => {
 
         validOrder = {
-
+            
             ID: 0,
             animalType: "Pigeons - Young Birds",
             email: "jamesbrass@ymail.com",
@@ -518,15 +518,16 @@ describe('Storing orders', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify([validOrder]),
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [validOrder]}),
             headers: { 'Content-Type': 'application/json' },
         });
 
         const json = await res.json();
 
-        const docID = json.docID;
+        const docID = json.documentIDs;
 
-        console.log(json);
+        console.log(docID)
+        console.log(json.documentIDs);
         console.log(json.message);
 
         expect(res.status).toBe(200);
@@ -553,7 +554,7 @@ describe('Storing orders', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify([validOrder,validOrder,validOrder,validOrder,validOrder,validOrder]),
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [validOrder, validOrder, validOrder]}),
             headers: { 'Content-Type': 'application/json' },
         });
 
