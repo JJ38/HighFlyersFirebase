@@ -6,25 +6,25 @@ import os from "os";
 
 export async function sendMailCustomer(attachmentHTML, address){
 
-    const mailResult = await sendMail(attachmentHTML, address);
+    const subject = "Order confirmation";
+
+    const mailResult = await sendMail(attachmentHTML, address, subject);
     return mailResult;
 
 }
 
-export async function sendMailInternal(attachmentHTML){
+export async function sendMailInternal(attachmentHTML, customerName){
 
-    if(process.env.GMAIL_EMAIL === null){
-        return false;
-    }
+    const subject = "Order from " + customerName;
 
-    const mailResult = await sendMail(attachmentHTML, process.env.GMAIL_EMAIL);
+    const mailResult = await sendMail(attachmentHTML, process.env.GMAIL_EMAIL, subject);
     return mailResult;
 
 }
 
 
 //gmail smtp has limit of 500 free emails a day
-export async function sendMail(attachmentHTML, address){
+export async function sendMail(attachmentHTML, address, subject){
 
 
     const transporter = nodemailer.createTransport({
@@ -52,8 +52,7 @@ export async function sendMail(attachmentHTML, address){
     const mailOptions = {
         from: `HighFlyersUkCouriers`,
         to: address, // recipient
-        subject: "Test",
-        text: "Order confirmation",
+        subject: subject,
         attachments: 
         [
             {

@@ -1,9 +1,36 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { DateTime } from "luxon";
 import { getDeliveryWeek } from "../../helpers/OrderModel.js";
-import { integrationTestDB, storeOrderUrl, storeCollectionNameOrders } from "../../helpers/Firebase.js"; 
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { initializeApp } from 'firebase/app'; 
+import { integrationTestDB, storeOrderUrl, storeCollectionNameOrders, app } from "../../helpers/Firebase.js"; 
+
+//imports .env file values
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBHkjHITuk2opFgiG2wG36WJE6CDmb4tK4",
+    authDomain: "highflyersukcouriers-a9c17.firebaseapp.com",
+    projectId: "highflyersukcouriers-a9c17",
+    storageBucket: "highflyersukcouriers-a9c17.firebasestorage.app",
+    messagingSenderId: "970355130070",
+    appId: "1:970355130070:web:b2ff0ee62b6b9ac2339377",
+    measurementId: "G-93M1E0Q9FJ",
+}
+
+const clientApp = initializeApp(firebaseConfig); // separate from admin app
+const auth = getAuth(clientApp);
 
 const db = integrationTestDB;
 const url = storeOrderUrl;
+
+async function getIdToken(email, password) {
+
+  const cred = await signInWithEmailAndPassword(auth, email, password);
+  return cred.user.getIdToken(true);
+
+}
 
 
 describe('validateOrder on emulator', () => {
@@ -432,6 +459,7 @@ describe('Storing orders', () => {
     
     let deliveryWeek;
     let time;
+    let adminIDToken;
 
 
     let validOrder = {
@@ -468,8 +496,10 @@ describe('Storing orders', () => {
 
     }
 
-    beforeAll(() => {
+    beforeAll(async () => {
 
+        adminIDToken = await getIdToken(process.env.ADMIN_EMAIL, process.env.ADMIN_PASSWORD);
+    
         const londonTime = DateTime.now().setZone('Europe/London');
         deliveryWeek = getDeliveryWeek(londonTime);
         time = londonTime.toFormat("yyyy-MM-dd HH:mm:ss");
@@ -514,7 +544,7 @@ describe('Storing orders', () => {
 
     });
 
-    test.only('Valid order', async () => {
+    test('Valid order', async () => {
 
         const res = await fetch(url, {
             method: 'POST',
@@ -581,6 +611,48 @@ describe('Storing orders', () => {
         // expect(storedData.ID).toBeGreaterThan(0);
 
     }, 15000);
+
+
+    test.only('Valid admin order', async () => {
+
+        testOrder = JSON.parse(JSON.stringify(validOrder));
+        testOrder['price'] = 999;
+        testOrder['deliveryWeek'] = 37;
+        testOrder['account'] = "adminIntegrationTest";
+
+        const res = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [testOrder]}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + adminIDToken, 
+            },
+        });
+
+        const json = await res.json();
+
+        const docID = json.documentIDs;
+
+        console.log(docID)
+        console.log(json.documentIDs);
+        console.log(json.message);
+
+        expect(res.status).toBe(200);
+        expect(json.error).toBe(false);
+
+        const docRef = db.collection(storeCollectionNameOrders).doc(docID);
+
+        const docSnap = await docRef.get();
+
+        expect(docSnap.exists).toBe(true);
+        
+        const storedData = docSnap.data();
+
+        expect(storedData.deliveryWeek).toBe(37);
+        expect(storedData.price).toBe(999);
+        expect(storedData.ID).toBeGreaterThan(0);
+
+    }, 10000);
 
 
 });
