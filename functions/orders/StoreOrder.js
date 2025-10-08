@@ -26,8 +26,8 @@ export const storeorder = onRequest(async (req, res) => {
         const orderJSON = formJSON['orderDetails'];
         const profileEmail = formJSON['profileEmail'];
 
-        // console.log(formJSON);
-        // console.log(orderJSON);
+        console.log(formJSON);
+        console.log(orderJSON);
 
         const birdSpecies = await fetchBirdSpecies(db);
 
@@ -65,9 +65,10 @@ export const storeorder = onRequest(async (req, res) => {
             if(!orderJSON[i]['deliveryWeek']){
 
                 orderJSON[i]['deliveryWeek'] = deliveryWeek;
-                orderJSON[i]['timestamp'] = londonTime.toFormat("yyyy-MM-dd HH:mm:ss");
 
             }
+
+            orderJSON[i]['timestamp'] = londonTime.toFormat("yyyy-MM-dd HH:mm:ss");
 
         }
 

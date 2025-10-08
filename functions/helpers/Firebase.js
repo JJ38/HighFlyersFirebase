@@ -1,6 +1,6 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
-import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
+// import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
 
 export const environment = "TESTING";
 export const middlewareStatus = "LIVE";
@@ -19,7 +19,7 @@ if (!getApps().length) {
     if (environment == "TESTING") {
 
         app = initializeApp({
-            credential: cert(serviceAccount),
+            // credential: cert(serviceAccount),
             projectId: "highflyersukcouriers-a9c17",
         });
 
