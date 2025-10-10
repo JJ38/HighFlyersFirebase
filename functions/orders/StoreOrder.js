@@ -4,7 +4,7 @@ import { logger } from "firebase-functions";
 
 import { validateForm } from "../helpers/Validator.js";
 import { getDeliveryWeek, calculateOrderPrice, getOrderID, fetchBirdSpecies, fetchPricePostcodeDefinitions } from "../helpers/OrderModel.js";
-import { integrationTestDB, middlewareStatus, storeCollectionNameOrders } from "../helpers/Firebase.js";
+import { integrationTestDB, storeCollectionNameOrders } from "../helpers/Firebase.js";
 import { sendMailCustomer, sendMailInternal, getAttachmentHTML } from "../helpers/Mailer.js";
 
 
@@ -13,7 +13,7 @@ export const storeorder = onRequest(async (req, res) => {
     let birdSpeciesSet = new Set();
     const db = integrationTestDB;
 
-    const role = req.user;
+    const role = req.user.role;
 
     console.log("Role: " + role);
 
@@ -88,27 +88,22 @@ export const storeorder = onRequest(async (req, res) => {
 
         }
 
-        let username = orderJSON[0]['account'];
+        let username;
 
-        if(middlewareStatus === "TESTING"){
-
-            if(orderJSON[0]['account'] === undefined){
-                username = "integrationTestCustomer";
+        if(role === "customer"){
+            username = req.user.email.replaceAll("@placeholder.com", "");
+            
+            if(username === null){
+                return res.status(500).json({error: true, message: "Internal Server Error", errorLog: "username is null"});
             }
 
-        }else{
-            username = req.user.email.replaceAll("@placeholder.com", "");
+            for(let i = 0; i < orderJSON.length; i++){
+
+                orderJSON[i]['account'] = username;
+
+            }
         }
-
-        if(username === null){
-            return res.status(500).json({error: true, message: "Internal Server Error", errorLog: "username is null"});
-        }
-
-        for(let i = 0; i < orderJSON.length; i++){
-
-            orderJSON[i]['account'] = username;
-
-        }
+    
 
         //return a list of ids
         const newHighID = await getOrderID(db, orderJSON.length);
@@ -137,22 +132,28 @@ export const storeorder = onRequest(async (req, res) => {
             await batch.commit();
             
             if(process.env.GMAIL_EMAIL === null){
-                return false;
+                return res.status(200).json({error: true, ordersSubmitted: orderJSON.length, message: "Successfully stored order(s) but error sending email - No email to send from found", documentIDs: documentIDs.toString()});
             }
 
-            const attachmentHTML = getAttachmentHTML(orderJSON);
-            
-            const mailResultCustomer = await sendMailCustomer(attachmentHTML, profileEmail);
 
-            if(mailResultCustomer === false){
-                console.log("Error sending customer email");
-                return res.status(200).json({error: true, ordersSubmitted: orderJSON.length, message: "Successfully stored order(s) but error sending email", documentIDs: documentIDs.toString()});
-            }
 
-            const mailResultInternal = await sendMailInternal(attachmentHTML, username);
+            if(role === "customer"){
 
-            if(mailResultInternal === false){
-                console.log("Error sending internal email");
+                const attachmentHTML = getAttachmentHTML(orderJSON);
+                
+                const mailResultCustomer = await sendMailCustomer(attachmentHTML, profileEmail);
+
+                if(mailResultCustomer === false){
+                    console.log("Error sending customer email");
+                    return res.status(200).json({error: true, ordersSubmitted: orderJSON.length, message: "Successfully stored order(s) but error sending email", documentIDs: documentIDs.toString()});
+                }
+
+                const mailResultInternal = await sendMailInternal(attachmentHTML, username);
+
+                if(mailResultInternal === false){
+                    console.log("Error sending internal email");
+                }
+
             }
 
             return res.status(200).json({error: false, ordersSubmitted: orderJSON.length, message: "Successfully stored order(s)", documentIDs: documentIDs.toString()});

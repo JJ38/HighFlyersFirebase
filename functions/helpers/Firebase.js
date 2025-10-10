@@ -3,7 +3,6 @@ import { initializeApp, cert, getApps } from "firebase-admin/app";
 // import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
 
 export const environment = "TESTING";
-export const middlewareStatus = "LIVE";
 export const storeCollectionNameOrders = "Orders";
 export let app;
 export let cloudFunctionDB;

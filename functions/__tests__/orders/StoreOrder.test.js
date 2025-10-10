@@ -460,6 +460,8 @@ describe('Storing orders', () => {
     let deliveryWeek;
     let time;
     let adminIDToken;
+    let customerIDToken;
+
 
 
     let validOrder = {
@@ -499,6 +501,7 @@ describe('Storing orders', () => {
     beforeAll(async () => {
 
         adminIDToken = await getIdToken(process.env.ADMIN_EMAIL, process.env.ADMIN_PASSWORD);
+        customerIDToken = await getIdToken(process.env.CUSTOMER_EMAIL, process.env.CUSTOMER_PASSWORD);
     
         const londonTime = DateTime.now().setZone('Europe/London');
         deliveryWeek = getDeliveryWeek(londonTime);
@@ -544,12 +547,15 @@ describe('Storing orders', () => {
 
     });
 
-    test('Valid order', async () => {
+    test.only('Valid customer order', async () => {
 
         const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [validOrder]}),
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,  
+            },
         });
 
         const json = await res.json();
@@ -613,7 +619,7 @@ describe('Storing orders', () => {
     }, 15000);
 
 
-    test.only('Valid admin order', async () => {
+    test('Valid admin order', async () => {
 
         testOrder = JSON.parse(JSON.stringify(validOrder));
         testOrder['price'] = 999;
