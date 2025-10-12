@@ -5,7 +5,7 @@ import { DateTime } from "luxon";
 import { getDeliveryWeek } from "../../helpers/OrderModel.js";
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { initializeApp } from 'firebase/app'; 
-import { integrationTestDB, storeOrderUrl, storeCollectionNameOrders, app } from "../../helpers/Firebase.js"; 
+import { integrationTestDB, storeOrderUrl, ordersCollectionName, app } from "../../helpers/Firebase.js"; 
 
 //imports .env file values
 
@@ -569,7 +569,7 @@ describe('Storing orders', () => {
         expect(res.status).toBe(200);
         expect(json.error).toBe(false);
 
-        const docRef = db.collection(storeCollectionNameOrders).doc(docID);
+        const docRef = db.collection(ordersCollectionName).doc(docID);
 
         const docSnap = await docRef.get();
 
@@ -601,7 +601,7 @@ describe('Storing orders', () => {
         expect(res.status).toBe(200);
         expect(json.error).toBe(false);
 
-        // const docRef = db.collection(storeCollectionNameOrders).doc(docID);
+        // const docRef = db.collection(ordersCollectionName).doc(docID);
 
         // const docSnap = await docRef.get();
 
@@ -646,7 +646,7 @@ describe('Storing orders', () => {
         expect(res.status).toBe(200);
         expect(json.error).toBe(false);
 
-        const docRef = db.collection(storeCollectionNameOrders).doc(docID);
+        const docRef = db.collection(ordersCollectionName).doc(docID);
 
         const docSnap = await docRef.get();
 

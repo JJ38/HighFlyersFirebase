@@ -4,7 +4,7 @@ import { logger } from "firebase-functions";
 
 import { validateForm } from "../helpers/Validator.js";
 import { getDeliveryWeek, calculateOrderPrice, getOrderID, fetchBirdSpecies, fetchPricePostcodeDefinitions } from "../helpers/OrderModel.js";
-import { integrationTestDB, storeCollectionNameOrders } from "../helpers/Firebase.js";
+import { integrationTestDB, ordersCollectionName } from "../helpers/Firebase.js";
 import { sendMailCustomer, sendMailInternal, getAttachmentHTML } from "../helpers/Mailer.js";
 
 
@@ -14,6 +14,11 @@ export const storeorder = onRequest(async (req, res) => {
     const db = integrationTestDB;
 
     const role = req.user.role;
+
+    if(role != "customer" || role != "admin"){
+        return res.status(403).send("Unauthorized: Insufficient permissions");
+    }
+
 
     console.log("Role: " + role);
 
@@ -123,7 +128,7 @@ export const storeorder = onRequest(async (req, res) => {
             
             for(let i = 0; i < orderJSON.length; i++){
 
-                const orderDocRef = db.collection(storeCollectionNameOrders).doc();
+                const orderDocRef = db.collection(ordersCollectionName).doc();
                 documentIDs.push(orderDocRef.id);
                 batch.set(orderDocRef, orderJSON[i]);
 
