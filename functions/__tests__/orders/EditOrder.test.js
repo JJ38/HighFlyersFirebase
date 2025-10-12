@@ -1,9 +1,11 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+import { DateTime } from "luxon";
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { initializeApp } from 'firebase/app'; 
 import { integrationTestDB, editOrderUrl, ordersCollectionName } from "../../helpers/Firebase.js"; 
+import { getDeliveryWeek } from '../../helpers/OrderModel.js';
 
 
 
@@ -37,6 +39,7 @@ describe('Edit order tests', () => {
 
     let validOrder;
     let adminIDToken;
+    let deliveryWeek;
     const documentUUID = "03GFJbLEchNfrQwURFTX";
 
      beforeAll(async () => {
@@ -44,6 +47,8 @@ describe('Edit order tests', () => {
         //create document to edit here. Get uuid in return and use for tests
     
         adminIDToken = await getIdToken(process.env.ADMIN_EMAIL, process.env.ADMIN_PASSWORD);
+        const londonTime = DateTime.now().setZone('Europe/London');
+        deliveryWeek = getDeliveryWeek(londonTime);
 
     });
     
@@ -84,7 +89,7 @@ describe('Edit order tests', () => {
         };
     });
 
-    test.only('Edit order valid uuid', async () => {
+    test('Edit order valid uuid', async () => {
 
         const res = await fetch(url, {
             method: 'POST',
@@ -107,7 +112,7 @@ describe('Edit order tests', () => {
     });
 
 
-    test.only('Edit order invalid uuid', async () => {
+    test('Edit order invalid uuid', async () => {
 
         const res = await fetch(url, {
             method: 'POST',
@@ -130,14 +135,13 @@ describe('Edit order tests', () => {
     });
 
 
-    
-    test.only('Edit order uuid doesnt exist', async () => {
+    test('Edit order invalid uuid', async () => {
 
         const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify({
                 "orderDetails": validOrder,
-                "uuid": "oaidfhgoi[adf"
+                "uuid": "dawgdraarg"
             }),
             headers: { 
                 'Content-Type': 'application/json',
@@ -149,7 +153,71 @@ describe('Edit order tests', () => {
 
         console.log(json);
         
-        expect(res.status).toBe(404);
+        expect(res.status).toBe(400);
+        
+    });
+
+      
+    test.only('Edit order empty deliveryWeek', async () => {
+
+        const res = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({
+                "orderDetails": { ...validOrder, deliveryWeek: ""},
+                "uuid": documentUUID
+            }),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + adminIDToken,  
+            }
+        });
+
+        const json = await res.json();
+
+        console.log(json);
+        expect(res.status).toBe(200);
+
+        const docRef = db.collection(ordersCollectionName).doc(documentUUID);
+        
+        const docSnap = await docRef.get();
+
+        expect(docSnap.exists).toBe(true);
+        
+        const storedData = docSnap.data();
+
+        expect(storedData.deliveryWeek).toBe(deliveryWeek);
+        
+    });
+
+    test('Edit order empty price', async () => {
+
+        const res = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({
+                "orderDetails": { ...validOrder, price: "", animalType: "Birds Of Prey", quantity: 5, boxes: 5},
+                "uuid": documentUUID
+            }),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + adminIDToken,  
+            }
+        });
+
+        const json = await res.json();
+
+        console.log(json);
+        
+        expect(res.status).toBe(200);
+
+        const docRef = db.collection(ordersCollectionName).doc(documentUUID);
+        
+        const docSnap = await docRef.get();
+
+        expect(docSnap.exists).toBe(true);
+        
+        const storedData = docSnap.data();
+
+        expect(storedData.price).toBe(199);
         
     });
 

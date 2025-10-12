@@ -86,7 +86,7 @@ export const editorder = onRequest(async (req, res) => {
                 return res.status(500).json({error: true, message: "Internal Server Error", errorLog: "postcodeDefinitions is false"});
             }
 
-            const orderPrice = calculateOrderPrice(orderJSON[i]['collectionPostcode'], orderJSON[i]['collectionPostcode'], orderJSON[i]['quantity'], orderJSON[i]['boxes'], orderJSON[i]['animalType'], birdSpecies, pricePostcodeDefinitions);
+            const orderPrice = calculateOrderPrice(orderJSON['collectionPostcode'], orderJSON['collectionPostcode'], orderJSON['quantity'], orderJSON['boxes'], orderJSON['animalType'], birdSpecies, pricePostcodeDefinitions);
             orderJSON['price'] = orderPrice ? orderPrice : "N/A";
 
         }
