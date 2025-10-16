@@ -56,7 +56,7 @@ describe('Edit order tests', () => {
     beforeEach(() => {
         validOrder = {
 
-            ID: 1234567,
+            ID: 12345,
             animalType: "Pigeons - Young Birds",
             email: "jamesbrass@ymail.com",
             quantity: 2,

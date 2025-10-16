@@ -4,23 +4,28 @@ import { logger } from "firebase-functions";
 
 import { validateForm } from "../helpers/Validator.js";
 import { getDeliveryWeek, calculateOrderPrice, getOrderID, fetchBirdSpecies, fetchPricePostcodeDefinitions } from "../helpers/OrderModel.js";
-import { integrationTestDB, ordersCollectionName } from "../helpers/Firebase.js";
+import { getDatabase, ordersCollectionName } from "../helpers/Firebase.js";
 import { sendMailCustomer, sendMailInternal, getAttachmentHTML } from "../helpers/Mailer.js";
+import { getDatabase } from "firebase-admin/database";
 
 
 export const storeorder = onRequest(async (req, res) => {
 
     let birdSpeciesSet = new Set();
-    const db = integrationTestDB;
 
     const role = req.user.role;
+    
 
-    if(role != "customer" || role != "admin"){
+    if(role != "customer" && role != "admin"){
         return res.status(403).send("Unauthorized: Insufficient permissions");
     }
 
+    const environment = req.body['environment'];
+    const db = getDatabase(environment);
 
-    console.log("Role: " + role);
+    if(!environment){
+        return res.status(400).send("Environment: Not Allowed - " + environment);
+    }
 
 
     try{
@@ -32,7 +37,6 @@ export const storeorder = onRequest(async (req, res) => {
         const profileEmail = formJSON['profileEmail'];
 
         console.log(formJSON);
-        console.log(orderJSON);
 
         const birdSpecies = await fetchBirdSpecies(db);
 
@@ -46,7 +50,6 @@ export const storeorder = onRequest(async (req, res) => {
 
         }   
 
-
         //validate each order
         for(let i = 0; i < orderJSON.length; i++){
             
@@ -56,7 +59,6 @@ export const storeorder = onRequest(async (req, res) => {
             }
 
         }
-
 
         //get delivery week
         const londonTime = DateTime.now().setZone('Europe/London');

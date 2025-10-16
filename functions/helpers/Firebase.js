@@ -1,8 +1,8 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
-import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
+// import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
 
-export const environment = "TESTING";
+export const environment = "LIVE";
 export const ordersCollectionName = "Orders";
 export let app;
 export let cloudFunctionDB;
@@ -20,7 +20,7 @@ if (!getApps().length) {
     if (environment == "TESTING") {
 
         app = initializeApp({
-            credential: cert(serviceAccount),
+            // credential: cert(serviceAccount),
             projectId: "highflyersukcouriers-a9c17",
         });
 
@@ -44,11 +44,30 @@ if (environment == "TESTING") {
     storeOrderUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/storeorder';
     editOrderUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/editorder';
 
-
 } else if(environment == "LIVE"){
 
+    //urls are for the integration tests
     cloudFunctionDB = getFirestore(undefined, "(default)");
-    storeOrderUrl = 'https://storeorder-qjydin7gka-uc.a.run.app';
+    storeOrderUrl = "https://api-qjydin7gka-uc.a.run.app/storeorder"
+    editOrderUrl = "https://api-qjydin7gka-uc.a.run.app/editorder"
+    // deleteOrderUrl = "https://api-qjydin7gka-uc.a.run.app/deleteorder"
+
+}
+
+
+export function getDatabase(environment){
+
+    if(environment == "DEV"){
+
+        return getFirestore(undefined, "development");
+
+    }else if(environment == "PROD"){
+
+        return getFirestore(undefined, "(default)");
+
+    }else{
+        return false;
+    }
 
 }
 
@@ -78,30 +97,4 @@ export async function getDocument(q){
         console.log(e);
         return false
     }
-}
-
-export async function validateJWT(req, res, next) {
-
-  const authorization = req.headers.authorization;
-  if (!authorization || !authorization.startsWith("Bearer ")) {
-
-    res.status(403).send("Unauthorized: No Bearer token");
-    return ;
-
-  }
-
-  const idToken = authorization.split("Bearer ")[1];
-
-  try {
-
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    req.user = decodedToken; // Attach user info for later use
-    next();
-
-  } catch (err) {
-
-    console.error("Error while verifying Firebase ID token:", err);
-    res.status(403).send("Unauthorized: Invalid token");
-
-  }
 }

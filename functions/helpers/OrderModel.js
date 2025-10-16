@@ -68,8 +68,6 @@ export async function fetchBirdSpecies(db){
 
     try {
 
-        console.log("fetchbirdspecies db id: " + db._databaseId);
-
         const docRef = db.collection("Settings").doc("birdSpecies");
      
         const birdSpeciesDocument = await docRef.get();

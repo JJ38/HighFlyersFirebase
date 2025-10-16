@@ -1,5 +1,6 @@
 import { storeorder } from "./orders/StoreOrder.js";
 import { editorder } from "./orders/EditOrder.js";
+import { deleteorder } from "./orders/DeleteOrder.js";
 import { onRequest } from "firebase-functions/v2/https";
 import { validateFirebaseIdToken } from "./helpers/Middleware.js";
 
@@ -13,6 +14,7 @@ app.use(validateFirebaseIdToken);
 
 app.post("/storeorder", storeorder);
 app.post("/editorder", editorder);
+app.post("/deleteorder", deleteorder);
 
 
 export const api = onRequest(app);
