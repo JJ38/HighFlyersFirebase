@@ -6,7 +6,6 @@ import { validateForm } from "../helpers/Validator.js";
 import { getDeliveryWeek, calculateOrderPrice, getOrderID, fetchBirdSpecies, fetchPricePostcodeDefinitions } from "../helpers/OrderModel.js";
 import { getDatabase, ordersCollectionName } from "../helpers/Firebase.js";
 import { sendMailCustomer, sendMailInternal, getAttachmentHTML } from "../helpers/Mailer.js";
-import { getDatabase } from "firebase-admin/database";
 
 
 export const storeorder = onRequest(async (req, res) => {

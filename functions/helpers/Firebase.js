@@ -1,14 +1,16 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 // import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
 
 export const environment = "LIVE";
 export const ordersCollectionName = "Orders";
-export let app;
+let app;
 export let cloudFunctionDB;
 export let integrationTestDB; 
 export let storeOrderUrl;
 export let editOrderUrl;
+export let auth;
 
 
 
@@ -27,11 +29,13 @@ if (!getApps().length) {
 
     }else if(environment == "LIVE"){
 
-        initializeApp({
+        app = initializeApp({
             projectId: "highflyersukcouriers-a9c17",
         });
 
     }
+
+    auth = getAuth(app);
 
 }
 
