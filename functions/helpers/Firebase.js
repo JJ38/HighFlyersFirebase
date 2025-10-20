@@ -10,16 +10,15 @@ export let cloudFunctionDB;
 export let integrationTestDB; 
 export let storeOrderUrl;
 export let editOrderUrl;
+export let createUserUrl;
 export let auth;
-
-
 
 delete process.env.FIRESTORE_EMULATOR_HOST;
 
 if (!getApps().length) {
 
     
-    if (environment == "TESTING") {
+    if (environment == "TESTING" || environment == "INTEGRATION_TESTING") {
 
         app = initializeApp({
             // credential: cert(serviceAccount),
@@ -48,13 +47,17 @@ if (environment == "TESTING") {
     storeOrderUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/storeorder';
     editOrderUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/editorder';
 
+    
+
 } else if(environment == "LIVE"){
 
     //urls are for the integration tests
     cloudFunctionDB = getFirestore(undefined, "(default)");
-    storeOrderUrl = "https://api-qjydin7gka-uc.a.run.app/storeorder"
-    editOrderUrl = "https://api-qjydin7gka-uc.a.run.app/editorder"
+    storeOrderUrl = "https://api-qjydin7gka-uc.a.run.app/storeorder";
+    editOrderUrl = "https://api-qjydin7gka-uc.a.run.app/editorder";
     // deleteOrderUrl = "https://api-qjydin7gka-uc.a.run.app/deleteorder"
+    createUserUrl = "https://api-qjydin7gka-uc.a.run.app/createuser";
+
 
 }
 
