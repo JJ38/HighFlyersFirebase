@@ -11,6 +11,7 @@ export let integrationTestDB;
 export let storeOrderUrl;
 export let editOrderUrl;
 export let createUserUrl;
+export let deleteUserUrl;
 export let auth;
 
 delete process.env.FIRESTORE_EMULATOR_HOST;
@@ -47,6 +48,7 @@ if (environment == "TESTING") {
     storeOrderUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/storeorder';
     editOrderUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/editorder';
     createUserUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/createuser';
+    deleteUserUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/deleteuser';
 
     
 
@@ -58,6 +60,7 @@ if (environment == "TESTING") {
     editOrderUrl = "https://api-qjydin7gka-uc.a.run.app/editorder";
     // deleteOrderUrl = "https://api-qjydin7gka-uc.a.run.app/deleteorder"
     createUserUrl = "https://api-qjydin7gka-uc.a.run.app/createuser";
+    deleteUserUrl = "https://api-qjydin7gka-uc.a.run.app/deleteuser";
 
 
 }

@@ -3,6 +3,7 @@ import { editorder } from "./orders/EditOrder.js";
 import { deleteorder } from "./orders/DeleteOrder.js";
 import { changepassword } from "./users/ChangePassword.js";
 import { createuser } from "./users/CreateUser.js";
+import { deleteuser } from "./users/DeleteUser.js";
 import { onRequest } from "firebase-functions/v2/https";
 import { validateFirebaseIdToken } from "./helpers/Middleware.js";
 
@@ -18,6 +19,7 @@ app.post("/editorder", editorder);
 app.post("/deleteorder", deleteorder);
 app.post("/changepassword", changepassword);
 app.post("/createuser", createuser);
+app.post("/deleteuser", deleteuser);
 
 
 export const api = onRequest(app);
