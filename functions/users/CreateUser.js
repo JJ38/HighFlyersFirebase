@@ -71,7 +71,7 @@ export const createuser = onRequest(async (req, res) => {
 
             const driverDocTemplate = {
                 "assignedRuns": [],
-                "driverName": email,
+                "driverName": username,
                 "driverStatus": "Offline"
             }
 
