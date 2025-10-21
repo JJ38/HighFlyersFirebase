@@ -46,6 +46,7 @@ if (environment == "TESTING") {
     cloudFunctionDB = integrationTestDB;
     storeOrderUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/storeorder';
     editOrderUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/editorder';
+    createUserUrl = 'http://127.0.0.1:5001/highflyersukcouriers-a9c17/us-central1/api/createuser';
 
     
 

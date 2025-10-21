@@ -1,6 +1,5 @@
 import { onRequest } from "firebase-functions/v2/https"
 import { auth, getDatabase } from "../helpers/Firebase.js";
-import { cloudFunctionDB } from "../helpers/Firebase.js";
 
 
 export const createuser = onRequest(async (req, res) => {
@@ -30,15 +29,62 @@ export const createuser = onRequest(async (req, res) => {
             return res.status(400).send("Missing role or password");
         }
 
-        username = username + "@placeholder.com";
+        const email = username + "@placeholder.com";
 
         //if unsuccessful would throw error
-        newUser = await auth.createUser({email: username, password: userPassword,});
+        newUser = await auth.createUser({email: email, password: userPassword,});
 
         await auth.setCustomUserClaims(newUser.uid, { role: userRole });
 
-        await liveDB.collection('Users').doc(newUser.uid).set({"role": userRole, "username": username,});
-        await devDB.collection('Users').doc(newUser.uid).set({"role": userRole, "username": username,});
+
+        const liveDBBatch = liveDB.batch();
+        const devDBBatch = devDB.batch();
+
+
+        const usersDocRefLive = liveDB.collection('Users').doc(newUser.uid);
+        liveDBBatch.set(usersDocRefLive, {"role": userRole, "username": username,});
+
+        const usersDocRefDev = devDB.collection('Users').doc(newUser.uid);
+        devDBBatch.set(usersDocRefDev, {"role": userRole, "username": username,});
+
+        if(userRole == "customer"){
+            
+            const customerDocTemplate = {
+                "collectionAddress1": "",
+                "collectionAddress2": "",
+                "collectionAddress3": "",
+                "collectionPostcode": "",
+                "collectionName": "",
+                "collectionPhoneNumber": "",
+                "email": ""
+            }
+
+            const customerDocRefLive = liveDB.collection('Customers').doc(newUser.uid);
+            liveDBBatch.set(customerDocRefLive, customerDocTemplate);
+
+            const customerDocRefDev= devDB.collection('Customers').doc(newUser.uid);
+            devDBBatch.set(customerDocRefDev, customerDocTemplate);
+            
+        }
+            
+        if(userRole == "driver"){
+
+            const driverDocTemplate = {
+                "assignedRuns": [],
+                "driverName": email,
+                "driverStatus": "Offline"
+            }
+
+            const driverDocRefLive = liveDB.collection('Drivers').doc(newUser.uid);
+            liveDBBatch.set(driverDocRefLive, driverDocTemplate);
+
+            const driverDocRefDev= devDB.collection('Drivers').doc(newUser.uid);
+            devDBBatch.set(driverDocRefDev, driverDocTemplate);
+
+        }
+
+        await liveDBBatch.commit();
+        await devDBBatch.commit();
 
         return res.status(200).send("User created successfully");
 

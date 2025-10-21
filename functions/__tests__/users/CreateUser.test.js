@@ -42,11 +42,26 @@ describe('Creating users', () => {
     });
 
     //will throw 500 is user already exists so delete manually before tests.
-    test('Create User Successful', async () => {
+    test('Create Customer Successful', async () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify({username: "integrationTestUser", role: "admin", password: "password"}),
+            body: JSON.stringify({username: "integrationTestUserCustomer", role: "customer", password: "password"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + adminIDToken,  
+            },
+        });
+
+        expect(res.status).toBe(200);
+        
+    });
+
+    test('Create Driver Successful', async () => {
+
+        const res = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({username: "integrationTestUserDriver", role: "driver", password: "password"}),
             headers: { 
                 'Content-Type': 'application/json',
                 'Authorization': "Bearer " + adminIDToken,  
