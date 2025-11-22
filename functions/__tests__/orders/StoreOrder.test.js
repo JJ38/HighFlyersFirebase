@@ -5,7 +5,7 @@ import { DateTime } from "luxon";
 import { getDeliveryWeek } from "../../helpers/OrderModel.js";
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { initializeApp } from 'firebase/app'; 
-import { integrationTestDB, storeOrderUrl, ordersCollectionName, app } from "../../helpers/Firebase.js"; 
+import { integrationTestDB, storeOrderUrl, ordersCollectionName, app, environment } from "../../helpers/Firebase.js"; 
 
 //imports .env file values
 
@@ -33,7 +33,15 @@ async function getIdToken(email, password) {
 }
 
 
+//TODO: update these test as they wont work due to not being authorized
+
 describe('validateOrder on emulator', () => {
+
+    let deliveryWeek;
+    let time;
+    let adminIDToken;
+    let customerIDToken;
+
 
     let validOrder = {
 
@@ -68,6 +76,17 @@ describe('validateOrder on emulator', () => {
         timestamp: "2025-08-27 20:21:38",
 
     }
+
+    beforeAll(async () => {
+
+        adminIDToken = await getIdToken(process.env.ADMIN_EMAIL, process.env.ADMIN_PASSWORD);
+        customerIDToken = await getIdToken(process.env.CUSTOMER_EMAIL, process.env.CUSTOMER_PASSWORD);
+    
+        const londonTime = DateTime.now().setZone('Europe/London');
+        deliveryWeek = getDeliveryWeek(londonTime);
+        time = londonTime.toFormat("yyyy-MM-dd HH:mm:ss");
+
+    });
 
 
     beforeEach(() => {
@@ -111,18 +130,26 @@ describe('validateOrder on emulator', () => {
         const res = await fetch(url, {
             method: 'POST',
             body: 'this is not valid json',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            }
         });
 
         expect(res.status).toBe(400);
         
     });
 
+    //expect this to fial on line 14 in the index.js file that looks like this  app.use(express.json()); Express.js is return 400 not project code.
     test('Invalid Json with missing header', async () => {
 
         const res = await fetch(url, {
             method: 'POST',
             body: 'this is not valid json',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            }
         });
 
         expect(res.status).toBe(400);
@@ -136,8 +163,11 @@ describe('validateOrder on emulator', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' }
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            }
         });
 
         const json = await res.json();
@@ -152,14 +182,17 @@ describe('validateOrder on emulator', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            },
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Delivery Telephone is not a valid phone number. Please enter an 11 digit phone number");
+        expect(json.message).toBe("Delivery Telephone is not a valid phone number. Please enter an 11 digit phone number - order at index: 0");
     });
 
     test('Invalid Delivery Phone Number (incorrect length)', async () => {
@@ -167,14 +200,17 @@ describe('validateOrder on emulator', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            },
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Delivery Telephone is not a valid phone number. Please enter an 11 digit phone number");
+        expect(json.message).toBe("Delivery Telephone is not a valid phone number. Please enter an 11 digit phone number - order at index: 0");
     });
 
     test('Invalid Collection Phone Number (non-numeric)', async () => {
@@ -182,14 +218,17 @@ describe('validateOrder on emulator', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' }
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            }
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Collection Telephone is not a valid phone number. Please enter an 11 digit phone number");
+        expect(json.message).toBe("Collection Telephone is not a valid phone number. Please enter an 11 digit phone number - order at index: 0");
     });
     
     test('Invalid Collection Phone Number (incorrect length)', async () => {
@@ -197,14 +236,17 @@ describe('validateOrder on emulator', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' }
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            }
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Collection Telephone is not a valid phone number. Please enter an 11 digit phone number");
+        expect(json.message).toBe("Collection Telephone is not a valid phone number. Please enter an 11 digit phone number - order at index: 0");
     });
 
     test('Invalid Email', async () => {
@@ -212,14 +254,17 @@ describe('validateOrder on emulator', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' }
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            }
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Email is not valid");
+        expect(json.message).toBe("Email is not valid - order at index: 0");
     });
 
     test('Invalid Payment Option', async () => {
@@ -227,14 +272,17 @@ describe('validateOrder on emulator', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' }
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            }
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Please select a valid payment option");
+        expect(json.message).toBe("Please select a valid payment option - order at index: 0");
     });
 
     test('Invalid Animal Type', async () => {
@@ -242,14 +290,17 @@ describe('validateOrder on emulator', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' }
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            }
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Please select a valid animal type");
+        expect(json.message).toBe("Please select a valid animal type - order at index: 0");
     });
 
     test('Invalid Quantity (non-numeric)', async () => {
@@ -257,14 +308,17 @@ describe('validateOrder on emulator', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' }
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            }
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Quantity is not a valid number. Please enter a number greater than 0");
+        expect(json.message).toBe("Quantity is not a valid number. Please enter a number greater than 0 - order at index: 0");
     });
 
     test('Invalid Quantity (zero)', async () => {
@@ -272,14 +326,17 @@ describe('validateOrder on emulator', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' }
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            }
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Quantity is not a valid number. Please enter a number greater than 0");
+        expect(json.message).toBe("Quantity is not a valid number. Please enter a number greater than 0 - order at index: 0");
     });
 
     test('Invalid Boxes (non-numeric)', async () => {
@@ -287,14 +344,17 @@ describe('validateOrder on emulator', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' }
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            }
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Boxes is not a valid number. Please enter a number greater than 0");
+        expect(json.message).toBe("Boxes is not a valid number. Please enter a number greater than 0 - order at index: 0");
     });
 
     test('Invalid Boxes (zero)', async () => {
@@ -302,153 +362,186 @@ describe('validateOrder on emulator', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' }
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            }
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Boxes is not a valid number. Please enter a number greater than 0");
+        expect(json.message).toBe("Boxes is not a valid number. Please enter a number greater than 0 - order at index: 0");
     });
 
     test('Null Delivery Phone Number', async () => {
         const order = { ...validOrder, deliveryPhoneNumber: null };
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            },
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Validation Error - make sure all required fields are in the json and non values are null");
+        expect(json.message).toBe("Validation Error - make sure all required fields are in the json and non values are null - order at index: 0");
     });
 
     test('Null Collection Phone Number', async () => {
         const order = { ...validOrder, collectionPhoneNumber: null };
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            },
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Validation Error - make sure all required fields are in the json and non values are null");
+        expect(json.message).toBe("Validation Error - make sure all required fields are in the json and non values are null - order at index: 0");
     });
 
     test('Empty String for Delivery Phone Number', async () => {
         const order = { ...validOrder, deliveryPhoneNumber: "" };
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            },
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Delivery Telephone is not a valid phone number. Please enter an 11 digit phone number");
+        expect(json.message).toBe("Delivery Telephone is not a valid phone number. Please enter an 11 digit phone number - order at index: 0");
     });
     
     test('Empty String for Collection Phone Number', async () => {
         const order = { ...validOrder, collectionPhoneNumber: "" };
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            },
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Collection Telephone is not a valid phone number. Please enter an 11 digit phone number");
+        expect(json.message).toBe("Collection Telephone is not a valid phone number. Please enter an 11 digit phone number - order at index: 0");
     });
 
     test('Empty String for Email', async () => {
         const order = { ...validOrder, email: "" };
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            },
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Email is not valid");
+        expect(json.message).toBe("Email is not valid - order at index: 0");
     });
 
     test('Empty String for Payment Option', async () => {
         const order = { ...validOrder, payment: "" };
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            },
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Please select a valid payment option");
+        expect(json.message).toBe("Please select a valid payment option - order at index: 0");
     });
 
     test('Empty String for Animal Type', async () => {
         const order = { ...validOrder, animalType: "" };
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            },
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Please select a valid animal type");
+        expect(json.message).toBe("Please select a valid animal type - order at index: 0");
     });
 
     test('Empty String for Quantity', async () => {
         const order = { ...validOrder, quantity: "" };
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            },
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Quantity is not a valid number. Please enter a number greater than 0");
+        expect(json.message).toBe("Quantity is not a valid number. Please enter a number greater than 0 - order at index: 0");
     });
 
     test('Empty String for Boxes', async () => {
         const order = { ...validOrder, boxes: "" };
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify(order),
-            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [order], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            },
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Boxes is not a valid number. Please enter a number greater than 0");
+        expect(json.message).toBe("Boxes is not a valid number. Please enter a number greater than 0 - order at index: 0");
     });
 
-    test('Completely empty body', async () => {
+    test('Empty json body', async () => {
         const res = await fetch(url, {
             method: 'POST',
             body: JSON.stringify({}),
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,   
+            },
         });
 
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Validation Error - make sure all required fields are in the json and non values are null");
+        expect(json.message).toBe("Invalid json structure. environment, orderDetails and profileEmail must be defined");
     });
 
 });
@@ -547,16 +640,18 @@ describe('Storing orders', () => {
 
     });
 
-    test.only('Valid customer order', async () => {
+    test('Valid customer order', async () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [validOrder]}),
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [validOrder], environment: "DEV"}),
             headers: { 
                 'Content-Type': 'application/json',
                 'Authorization': "Bearer " + customerIDToken,  
             },
         });
+
+        console.log(res);
 
         const json = await res.json();
 
@@ -590,8 +685,11 @@ describe('Storing orders', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [validOrder, validOrder, validOrder]}),
-            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [validOrder, validOrder, validOrder], environment: "DEV"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + customerIDToken,  
+            },
         });
 
         const json = await res.json();
@@ -628,7 +726,7 @@ describe('Storing orders', () => {
 
         const res = await fetch(url, {
             method: 'POST',
-            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [testOrder]}),
+            body: JSON.stringify({profileEmail: "jamesbrass@ymail.com", orderDetails: [testOrder], environment: "DEV"}),
             headers: { 
                 'Content-Type': 'application/json',
                 'Authorization': "Bearer " + adminIDToken, 

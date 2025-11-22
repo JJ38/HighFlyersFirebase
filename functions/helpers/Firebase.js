@@ -1,9 +1,9 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-// import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
+import serviceAccount from "../../highflyersukcouriers-a9c17-firebase-adminsdk-fbsvc-9bf9b914eb.json" with { type: "json" };
 
-export const environment = "LIVE";
+export const environment = "TESTING";
 export const ordersCollectionName = "Orders";
 let app;
 export let cloudFunctionDB;
@@ -22,7 +22,7 @@ if (!getApps().length) {
     if (environment == "TESTING" || environment == "INTEGRATION_TESTING") {
 
         app = initializeApp({
-            // credential: cert(serviceAccount),
+            credential: cert(serviceAccount),
             projectId: "highflyersukcouriers-a9c17",
         });
 

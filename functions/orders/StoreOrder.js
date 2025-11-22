@@ -12,30 +12,27 @@ export const storeorder = onRequest(async (req, res) => {
 
     let birdSpeciesSet = new Set();
 
-    const role = req.user.role;
-    
-
-    if(role != "customer" && role != "admin"){
-        return res.status(403).send("Unauthorized: Insufficient permissions");
-    }
-
-    const environment = req.body['environment'];
-    const db = getDatabase(environment);
-
-    if(!environment){
-        return res.status(400).send("Environment: Not Allowed - " + environment);
-    }
-
-
     try{
 
         //this is converted to a json object automatically within the express.js framework
         const formJSON = req.body;
+        console.log(formJSON);
 
+        const role = req.user.role;
+
+        if(role != "customer" && role != "admin"){
+            return res.status(403).send("Unauthorized: Insufficient permissions");
+        }
+
+        const environment = req.body['environment'];
         const orderJSON = formJSON['orderDetails'];
         const profileEmail = formJSON['profileEmail'];
 
-        console.log(formJSON);
+        if(!orderJSON || !profileEmail || !environment){
+            return res.status(400).json({error: true, message: "Invalid json structure. environment, orderDetails and profileEmail must be defined"});
+        }
+
+        const db = getDatabase(environment);
 
         const birdSpecies = await fetchBirdSpecies(db);
 
@@ -63,7 +60,6 @@ export const storeorder = onRequest(async (req, res) => {
         const londonTime = DateTime.now().setZone('Europe/London');
         const deliveryWeek = getDeliveryWeek(londonTime);
 
-        // orderJSON['deliveryWeek'] = deliveryWeek;
 
         //add delivery week to each order
         for(let i = 0; i < orderJSON.length; i++){
@@ -98,6 +94,7 @@ export const storeorder = onRequest(async (req, res) => {
 
         if(role === "customer"){
             username = req.user.email.replaceAll("@placeholder.com", "");
+            const uid = req.user.uid;
             
             if(username === null){
                 return res.status(500).json({error: true, message: "Internal Server Error", errorLog: "username is null"});
@@ -105,7 +102,7 @@ export const storeorder = onRequest(async (req, res) => {
 
             for(let i = 0; i < orderJSON.length; i++){
 
-                orderJSON[i]['account'] = username;
+                orderJSON[i]['account'] = uid;
 
             }
         }
@@ -134,6 +131,8 @@ export const storeorder = onRequest(async (req, res) => {
                 batch.set(orderDocRef, orderJSON[i]);
 
             }
+
+            
 
             await batch.commit();
             
