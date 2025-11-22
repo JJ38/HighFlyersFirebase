@@ -67,7 +67,7 @@ describe('validateOrder on emulator', () => {
         deliveryPostcode: "",
         deliveryPhoneNumber: "07123456789",
 
-        payment: "Collection",
+        payment: "Pickup",
         price: 0,
         message: "",
         code: "",
@@ -114,7 +114,7 @@ describe('validateOrder on emulator', () => {
             deliveryPostcode: "",
             deliveryPhoneNumber: "07123456789",
 
-            payment: "Collection",
+            payment: "Pickup",
             price: 60,
             message: "",
             code: "",
@@ -541,7 +541,7 @@ describe('validateOrder on emulator', () => {
         const json = await res.json();
         expect(res.status).toBe(400);
         expect(json.error).toBe(true);
-        expect(json.message).toBe("Invalid json structure. environment, orderDetails and profileEmail must be defined");
+        expect(json.message).toBe("Invalid json structure. environment and orderDetails must be defined");
     });
 
 });
@@ -581,7 +581,7 @@ describe('Storing orders', () => {
         deliveryPostcode: "",
         deliveryPhoneNumber: "07123456789",
 
-        payment: "Collection",
+        payment: "Pickup",
         price: 60,
         message: "",
         code: "",
@@ -628,7 +628,7 @@ describe('Storing orders', () => {
             deliveryPostcode: "",
             deliveryPhoneNumber: "07123456789",
 
-            payment: "Collection",
+            payment: "Pickup",
             price: 0,
             message: "",
             code: "",

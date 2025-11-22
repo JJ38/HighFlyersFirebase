@@ -28,8 +28,8 @@ export const storeorder = onRequest(async (req, res) => {
         const orderJSON = formJSON['orderDetails'];
         const profileEmail = formJSON['profileEmail'];
 
-        if(!orderJSON || !profileEmail || !environment){
-            return res.status(400).json({error: true, message: "Invalid json structure. environment, orderDetails and profileEmail must be defined"});
+        if(!orderJSON || !environment){
+            return res.status(400).json({error: true, message: "Invalid json structure. environment and orderDetails must be defined"});
         }
 
         const db = getDatabase(environment);

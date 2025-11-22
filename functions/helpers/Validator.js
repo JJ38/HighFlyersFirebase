@@ -1,7 +1,7 @@
 
 const isNumber = new RegExp('^[0-9]*$');
 const isEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-const validPaymentOptions = ['Collection', 'Delivery', 'Account'];
+const validPaymentOptions = ['Pickup', 'Delivery', 'Account'];
 
 export function validateForm(formJSON, validAnimalTypes){
 

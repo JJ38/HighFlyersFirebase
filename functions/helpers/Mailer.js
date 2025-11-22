@@ -26,6 +26,9 @@ export async function sendMailInternal(attachmentHTML, customerName){
 //gmail smtp has limit of 500 free emails a day
 export async function sendMail(attachmentHTML, address, subject){
 
+    if(address == null || address == undefined){
+        return false;
+    }
 
     const transporter = nodemailer.createTransport({
         service: "gmail",
