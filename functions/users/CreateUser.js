@@ -9,7 +9,6 @@ export const createuser = onRequest(async (req, res) => {
     const liveDB = getDatabase("PROD");
     const devDB = getDatabase("DEV");
 
-
     try{
 
         const role = req.user.role;
@@ -80,6 +79,21 @@ export const createuser = onRequest(async (req, res) => {
 
             const driverDocRefDev= devDB.collection('Drivers').doc(newUser.uid);
             devDBBatch.set(driverDocRefDev, driverDocTemplate);
+
+        }
+
+        if(userRole == "staff"){
+
+            const staffDocTemplate = {
+                "assignedRuns": [],
+                "staffName": username,
+            }
+
+            const staffDocRefLive = liveDB.collection('Staff').doc(newUser.uid);
+            liveDBBatch.set(staffDocRefLive, staffDocTemplate);
+
+            const staffDocRefDev= devDB.collection('Staff').doc(newUser.uid);
+            devDBBatch.set(staffDocRefDev, staffDocTemplate);
 
         }
 

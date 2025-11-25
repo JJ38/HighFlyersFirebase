@@ -72,6 +72,21 @@ describe('Creating users', () => {
         
     });
 
+    test.only('Create Staff Successful', async () => {
+
+        const res = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({username: "integrationTestUserStaff", role: "staff", password: "password"}),
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + adminIDToken,  
+            },
+        });
+
+        expect(res.status).toBe(200);
+        
+    });
+
     test('Create User No Authentication - Customer', async () => {
 
         const res = await fetch(url, {
