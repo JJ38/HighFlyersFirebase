@@ -12,7 +12,7 @@ export const editorder = onRequest(async (req, res) => {
     const formJSON = req.body;
     console.log(formJSON);
 
-    if(role != "admin" && role != "staff"){
+    if(role != "admin" && role != "staff" && role != "restricted_staff"){
         return res.status(403).send("Unauthorized: Insufficient permissions");
     }
 
