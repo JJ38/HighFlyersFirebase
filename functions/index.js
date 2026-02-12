@@ -4,6 +4,7 @@ import { deleteorder } from "./orders/DeleteOrder.js";
 import { changepassword } from "./users/ChangePassword.js";
 import { createuser } from "./users/CreateUser.js";
 import { deleteuser } from "./users/DeleteUser.js";
+import { sendSMS } from "./other/SendSMS.js";
 import { onRequest } from "firebase-functions/v2/https";
 import { validateFirebaseIdToken } from "./helpers/Middleware.js";
 
@@ -20,6 +21,7 @@ app.post("/deleteorder", deleteorder);
 app.post("/changepassword", changepassword);
 app.post("/createuser", createuser);
 app.post("/deleteuser", deleteuser);
+app.post("/sendsms", sendSMS);
 
 
 export const api = onRequest(app);

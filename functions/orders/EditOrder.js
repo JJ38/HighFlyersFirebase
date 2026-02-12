@@ -12,7 +12,7 @@ export const editorder = onRequest(async (req, res) => {
     const formJSON = req.body;
     console.log(formJSON);
 
-    if(role != "admin"){
+    if(role != "admin" && role != "staff"){
         return res.status(403).send("Unauthorized: Insufficient permissions");
     }
 
@@ -48,7 +48,6 @@ export const editorder = onRequest(async (req, res) => {
     try{
 
         const orderJSON = formJSON['orderDetails'];
-        console.log(formJSON);
 
         //fetch current allowed birdSpecies
         const birdSpecies = await fetchBirdSpecies(db);
@@ -68,6 +67,10 @@ export const editorder = onRequest(async (req, res) => {
         const validationError = validateForm(orderJSON, Array.from(birdSpeciesSet));
 
         if(validationError != null) {
+
+            console.log("invalid order");
+            console.log(orderJSON);
+        
             return res.status(400).json({error: true, message: validationError + " - order at index: "});
         }
 
@@ -87,6 +90,7 @@ export const editorder = onRequest(async (req, res) => {
             const pricePostcodeDefinitions = await fetchPricePostcodeDefinitions(db);
 
             if(pricePostcodeDefinitions == false){
+                console.log("Postcode definitions is false");
                 return res.status(500).json({error: true, message: "Internal Server Error", errorLog: "postcodeDefinitions is false"});
             }
 
@@ -100,7 +104,7 @@ export const editorder = onRequest(async (req, res) => {
             await orderRef.update(orderJSON);
 
         }catch(e){
-
+            console.log("Error updating order: " + e);
             return res.status(502).json({error: true, message: "Error storing updated order - " + e});
 
         }

@@ -20,7 +20,7 @@ export const storeorder = onRequest(async (req, res) => {
 
         const role = req.user.role;
 
-        if(role != "customer" && role != "admin"){
+        if(role != "customer" && role != "admin" && role != "staff"){
             return res.status(403).send("Unauthorized: Insufficient permissions");
         }
 

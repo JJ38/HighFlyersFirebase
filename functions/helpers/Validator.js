@@ -11,6 +11,9 @@ export function validateForm(formJSON, validAnimalTypes){
         formJSON.quantity = parseInt(formJSON.quantity);
         formJSON.boxes = parseInt(formJSON.boxes);
 
+        if(formJSON.deliveryWeek != null){
+            formJSON.deliveryWeek = parseInt(formJSON.deliveryWeek);
+        }
 
         const deliveryTelephoneNumber = formJSON.deliveryPhoneNumber.replace(" ", "");
         const collectionTelephoneNumber = formJSON.collectionPhoneNumber.replace(" ", "");

@@ -82,11 +82,12 @@ export const createuser = onRequest(async (req, res) => {
 
         }
 
-        if(userRole == "staff"){
+        if(userRole == "staff" || userRole == "restricted_staff"){
 
             const staffDocTemplate = {
                 "assignedRuns": [],
                 "staffName": username,
+                "role": userRole
             }
 
             const staffDocRefLive = liveDB.collection('Staff').doc(newUser.uid);
